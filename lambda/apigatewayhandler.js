@@ -6,6 +6,7 @@ const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client-secrets-manager");
 const tableName = process.env.table;
+const ses = new AWS.SES({ region: "us-east-1" });
 
 // initialise dynamoDB client
 exports.handler = async function (event, context) {
@@ -26,7 +27,7 @@ exports.handler = async function (event, context) {
         new PutCommand({
           TableName: tableName,
           Item: requestJSON,
-        })
+        }),
       );
       statusCode = 200;
       body = JSON.parse(Records[0].body);
@@ -50,7 +51,7 @@ exports.handler = async function (event, context) {
               Key: {
                 id: event.pathParameters.id,
               },
-            })
+            }),
           );
           body = `Deleted item ${event.pathParameters.id}`;
           break;
@@ -77,7 +78,7 @@ exports.handler = async function (event, context) {
                 ":description": requestJSON.description,
               },
               ReturnValues: "ALL_NEW",
-            })
+            }),
           );
           body = body.Items;
           console.log("DD sucessfully updated : ", requestJSON);
@@ -99,7 +100,7 @@ exports.handler = async function (event, context) {
                 ":value1": value1,
                 ":value2": value2,
               },
-            })
+            }),
           );
           body = body.Items;
           console.log("DD sucessfully filtered 2 column : ", requestBody);
@@ -115,7 +116,7 @@ exports.handler = async function (event, context) {
           const secretData = await client.send(
             new GetSecretValueCommand({
               SecretId: secret_name,
-            })
+            }),
           );
 
           const replaced = secretData.SecretString.replace(/['"{}]/g, "");
@@ -124,12 +125,56 @@ exports.handler = async function (event, context) {
             result.map((item) => {
               const splitted = item.split(":");
               responseobj[splitted[0]] = splitted[1];
-            })
+            }),
           );
           console.log("secretData retrived sucessfully");
           body = responseobj;
           break;
+        case "/sendemail":
+          console.log("Incoming Send Email Request");
 
+          const emailRequest = JSON.parse(event.body);
+          const { subject, body: emailBody, sender, recipient, cc = [] } = emailRequest;
+
+          if (!subject || !emailBody || !sender || !recipient) {
+            statusCode = 400;
+            body = {
+              error: "Missing required fields: subject, body, sender, recipient",
+            };
+            break;
+          }
+
+          const params = {
+            Source: sender,
+            Destination: {
+              ToAddresses: [recipient],
+              CcAddresses: Array.isArray(cc) ? cc : [cc],
+            },
+            Message: {
+              Subject: { Data: subject },
+              Body: {
+                Html: { Data: emailBody },
+              },
+            },
+          };
+
+          try {
+            const response = await ses.sendEmail(params).promise();
+            console.log("Email sent successfully:", response.MessageId);
+
+            body = {
+              status: "success",
+              messageId: response.MessageId,
+            };
+          } catch (err) {
+            console.error("SES send error:", err);
+            statusCode = 500;
+            body = {
+              status: "failed",
+              error: err.message,
+            };
+          }
+          break;
         default:
           throw new Error(`Unsupported route: "${event.routeKey}"`);
       }

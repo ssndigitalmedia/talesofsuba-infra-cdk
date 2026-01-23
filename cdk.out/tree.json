@@ -4,21 +4,21 @@
     "id": "App",
     "path": "",
     "children": {
-      "FaceCheckInAppInfraCdkStack": {
-        "id": "FaceCheckInAppInfraCdkStack",
-        "path": "FaceCheckInAppInfraCdkStack",
+      "AuthExitAppInfraCdkStack": {
+        "id": "AuthExitAppInfraCdkStack",
+        "path": "AuthExitAppInfraCdkStack",
         "children": {
-          "FaceCheckInApp-DLQ": {
-            "id": "FaceCheckInApp-DLQ",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-DLQ",
+          "AuthExit-DLQ": {
+            "id": "AuthExit-DLQ",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-DLQ",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-DLQ/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-DLQ/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::SQS::Queue",
                   "aws:cdk:cloudformation:props": {
-                    "queueName": "FaceCheckInApp-DLQ",
+                    "queueName": "AuthExit-DLQ",
                     "visibilityTimeout": 300
                   }
                 },
@@ -33,21 +33,21 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-bufferingQueue": {
-            "id": "FaceCheckInApp-bufferingQueue",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-bufferingQueue",
+          "AuthExit-bufferingQueue": {
+            "id": "AuthExit-bufferingQueue",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-bufferingQueue",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-bufferingQueue/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-bufferingQueue/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::SQS::Queue",
                   "aws:cdk:cloudformation:props": {
-                    "queueName": "FaceCheckInApp-bufferingQueue",
+                    "queueName": "AuthExit-bufferingQueue",
                     "redrivePolicy": {
                       "deadLetterTargetArn": {
                         "Fn::GetAtt": [
-                          "FaceCheckInAppDLQ7615442A",
+                          "AuthExitDLQ54B0F8AF",
                           "Arn"
                         ]
                       },
@@ -67,13 +67,13 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-Loggroup": {
-            "id": "FaceCheckInApp-Loggroup",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-Loggroup",
+          "AuthExit-Loggroup": {
+            "id": "AuthExit-Loggroup",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-Loggroup",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-Loggroup/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-Loggroup/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::Logs::LogGroup",
                   "aws:cdk:cloudformation:props": {
@@ -91,13 +91,13 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-event-table": {
-            "id": "FaceCheckInApp-event-table",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-event-table",
+          "AuthExit-event-table": {
+            "id": "AuthExit-event-table",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-event-table",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-event-table/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-event-table/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
                   "aws:cdk:cloudformation:props": {
@@ -114,7 +114,7 @@
                         "keyType": "HASH"
                       }
                     ],
-                    "tableName": "FaceCheckInApp-EventTable"
+                    "tableName": "AuthExit-EventTable"
                   }
                 },
                 "constructInfo": {
@@ -124,7 +124,7 @@
               },
               "ScalingRole": {
                 "id": "ScalingRole",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-event-table/ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-event-table/ScalingRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -136,13 +136,13 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-APIGatewayHandlerLambdaExecutionRole": {
-            "id": "FaceCheckInApp-APIGatewayHandlerLambdaExecutionRole",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-APIGatewayHandlerLambdaExecutionRole",
+          "AuthExit-APIGatewayHandlerLambdaExecutionRole": {
+            "id": "AuthExit-APIGatewayHandlerLambdaExecutionRole",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole",
             "children": {
-              "ImportFaceCheckInApp-APIGatewayHandlerLambdaExecutionRole": {
-                "id": "ImportFaceCheckInApp-APIGatewayHandlerLambdaExecutionRole",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-APIGatewayHandlerLambdaExecutionRole/ImportFaceCheckInApp-APIGatewayHandlerLambdaExecutionRole",
+              "ImportAuthExit-APIGatewayHandlerLambdaExecutionRole": {
+                "id": "ImportAuthExit-APIGatewayHandlerLambdaExecutionRole",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/ImportAuthExit-APIGatewayHandlerLambdaExecutionRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -150,7 +150,7 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-APIGatewayHandlerLambdaExecutionRole/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                   "aws:cdk:cloudformation:props": {
@@ -166,7 +166,7 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "roleName": "FaceCheckInApp-APIGatewayHandlerLambdaExecutionRole"
+                    "roleName": "AuthExit-APIGatewayHandlerLambdaExecutionRole"
                   }
                 },
                 "constructInfo": {
@@ -176,11 +176,11 @@
               },
               "DefaultPolicy": {
                 "id": "DefaultPolicy",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy/Resource",
+                    "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                       "aws:cdk:cloudformation:props": {
@@ -197,7 +197,7 @@
                               "Effect": "Allow",
                               "Resource": {
                                 "Fn::GetAtt": [
-                                  "FaceCheckInAppbufferingQueue267EE4A1",
+                                  "AuthExitbufferingQueueCB41D069",
                                   "Arn"
                                 ]
                               }
@@ -205,10 +205,10 @@
                           ],
                           "Version": "2012-10-17"
                         },
-                        "policyName": "FaceCheckInAppAPIGatewayHandlerLambdaExecutionRoleDefaultPolicyC783FB3D",
+                        "policyName": "AuthExitAPIGatewayHandlerLambdaExecutionRoleDefaultPolicy38F42BEB",
                         "roles": [
                           {
-                            "Ref": "FaceCheckInAppAPIGatewayHandlerLambdaExecutionRole076664E2"
+                            "Ref": "AuthExitAPIGatewayHandlerLambdaExecutionRole2845A0F9"
                           }
                         ]
                       }
@@ -230,13 +230,13 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-APIGatewayHandlerInlinePolicy": {
-            "id": "FaceCheckInApp-APIGatewayHandlerInlinePolicy",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-APIGatewayHandlerInlinePolicy",
+          "AuthExit-APIGatewayHandlerInlinePolicy": {
+            "id": "AuthExit-APIGatewayHandlerInlinePolicy",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerInlinePolicy",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-APIGatewayHandlerInlinePolicy/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerInlinePolicy/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                   "aws:cdk:cloudformation:props": {
@@ -257,7 +257,7 @@
                           "Effect": "Allow",
                           "Resource": {
                             "Fn::GetAtt": [
-                              "FaceCheckInAppeventtableE8A3EB8E",
+                              "AuthExiteventtableCBF725D3",
                               "Arn"
                             ]
                           }
@@ -275,10 +275,10 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "policyName": "FaceCheckInAppAPIGatewayHandlerInlinePolicy306ABB73",
+                    "policyName": "AuthExitAPIGatewayHandlerInlinePolicy3782EEE2",
                     "roles": [
                       {
-                        "Ref": "FaceCheckInAppAPIGatewayHandlerLambdaExecutionRole076664E2"
+                        "Ref": "AuthExitAPIGatewayHandlerLambdaExecutionRole2845A0F9"
                       }
                     ]
                   }
@@ -294,13 +294,13 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-ApiGwV2ToSqsRole": {
-            "id": "FaceCheckInApp-ApiGwV2ToSqsRole",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwV2ToSqsRole",
+          "AuthExit-ApiGwV2ToSqsRole": {
+            "id": "AuthExit-ApiGwV2ToSqsRole",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsRole",
             "children": {
-              "ImportFaceCheckInApp-ApiGwV2ToSqsRole": {
-                "id": "ImportFaceCheckInApp-ApiGwV2ToSqsRole",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwV2ToSqsRole/ImportFaceCheckInApp-ApiGwV2ToSqsRole",
+              "ImportAuthExit-ApiGwV2ToSqsRole": {
+                "id": "ImportAuthExit-ApiGwV2ToSqsRole",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsRole/ImportAuthExit-ApiGwV2ToSqsRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -308,7 +308,7 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwV2ToSqsRole/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsRole/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                   "aws:cdk:cloudformation:props": {
@@ -327,7 +327,7 @@
                     "managedPolicyArns": [
                       "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
                     ],
-                    "roleName": "FaceCheckInApp-ApiGwV2ToSqsRole"
+                    "roleName": "AuthExit-ApiGwV2ToSqsRole"
                   }
                 },
                 "constructInfo": {
@@ -343,19 +343,19 @@
           },
           "ApiGwPushCwPolicy": {
             "id": "ApiGwPushCwPolicy",
-            "path": "FaceCheckInAppInfraCdkStack/ApiGwPushCwPolicy",
+            "path": "AuthExitAppInfraCdkStack/ApiGwPushCwPolicy",
             "constructInfo": {
               "fqn": "aws-cdk-lib.Resource",
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-ApiGwV2ToSqsInlinePolicy": {
-            "id": "FaceCheckInApp-ApiGwV2ToSqsInlinePolicy",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwV2ToSqsInlinePolicy",
+          "AuthExit-ApiGwV2ToSqsInlinePolicy": {
+            "id": "AuthExit-ApiGwV2ToSqsInlinePolicy",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsInlinePolicy",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwV2ToSqsInlinePolicy/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsInlinePolicy/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                   "aws:cdk:cloudformation:props": {
@@ -371,7 +371,7 @@
                           "Effect": "Allow",
                           "Resource": {
                             "Fn::GetAtt": [
-                              "FaceCheckInAppbufferingQueue267EE4A1",
+                              "AuthExitbufferingQueueCB41D069",
                               "Arn"
                             ]
                           }
@@ -379,10 +379,10 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "policyName": "FaceCheckInAppApiGwV2ToSqsInlinePolicy7DEB6249",
+                    "policyName": "AuthExitApiGwV2ToSqsInlinePolicy8AB88B16",
                     "roles": [
                       {
-                        "Ref": "FaceCheckInAppApiGwV2ToSqsRoleEB44322A"
+                        "Ref": "AuthExitApiGwV2ToSqsRole0F41A033"
                       }
                     ]
                   }
@@ -398,17 +398,17 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-apigatewayhandler": {
-            "id": "FaceCheckInApp-apigatewayhandler",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-apigatewayhandler",
+          "AuthExit-apigatewayhandler": {
+            "id": "AuthExit-apigatewayhandler",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler",
             "children": {
               "Code": {
                 "id": "Code",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-apigatewayhandler/Code",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Code",
                 "children": {
                   "Stage": {
                     "id": "Stage",
-                    "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-apigatewayhandler/Code/Stage",
+                    "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Code/Stage",
                     "constructInfo": {
                       "fqn": "aws-cdk-lib.AssetStaging",
                       "version": "2.118.0"
@@ -416,7 +416,7 @@
                   },
                   "AssetBucket": {
                     "id": "AssetBucket",
-                    "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-apigatewayhandler/Code/AssetBucket",
+                    "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Code/AssetBucket",
                     "constructInfo": {
                       "fqn": "aws-cdk-lib.aws_s3.BucketBase",
                       "version": "2.118.0"
@@ -430,26 +430,26 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-apigatewayhandler/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
                   "aws:cdk:cloudformation:props": {
                     "code": {
-                      "s3Bucket": "cdk-hnb659fds-assets-949365052778-us-east-1",
-                      "s3Key": "65466ae157c5debb3d7b237c31c141e1f83274e8904b5d182b7302aa7d76df44.zip"
+                      "s3Bucket": "cdk-hnb659fds-assets-287190273383-us-east-1",
+                      "s3Key": "9739fffec4ef33b74f9b97a97c2b2523faa303c410b27761d5bc7ac5cc529d81.zip"
                     },
                     "environment": {
                       "variables": {
                         "table": {
-                          "Ref": "FaceCheckInAppeventtableE8A3EB8E"
+                          "Ref": "AuthExiteventtableCBF725D3"
                         }
                       }
                     },
-                    "functionName": "FaceCheckInApp-apigatewayhandler",
+                    "functionName": "AuthExit-apigatewayhandler",
                     "handler": "apigatewayhandler.handler",
                     "role": {
                       "Fn::GetAtt": [
-                        "FaceCheckInAppAPIGatewayHandlerLambdaExecutionRole076664E2",
+                        "AuthExitAPIGatewayHandlerLambdaExecutionRole2845A0F9",
                         "Arn"
                       ]
                     },
@@ -461,24 +461,24 @@
                   "version": "2.118.0"
                 }
               },
-              "SqsEventSource:FaceCheckInAppInfraCdkStackFaceCheckInAppbufferingQueue2285B30E": {
-                "id": "SqsEventSource:FaceCheckInAppInfraCdkStackFaceCheckInAppbufferingQueue2285B30E",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-apigatewayhandler/SqsEventSource:FaceCheckInAppInfraCdkStackFaceCheckInAppbufferingQueue2285B30E",
+              "SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0": {
+                "id": "SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-apigatewayhandler/SqsEventSource:FaceCheckInAppInfraCdkStackFaceCheckInAppbufferingQueue2285B30E/Resource",
+                    "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::Lambda::EventSourceMapping",
                       "aws:cdk:cloudformation:props": {
                         "eventSourceArn": {
                           "Fn::GetAtt": [
-                            "FaceCheckInAppbufferingQueue267EE4A1",
+                            "AuthExitbufferingQueueCB41D069",
                             "Arn"
                           ]
                         },
                         "functionName": {
-                          "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                          "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                         }
                       }
                     },
@@ -499,13 +499,13 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-ApiGwToLambdaRole": {
-            "id": "FaceCheckInApp-ApiGwToLambdaRole",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwToLambdaRole",
+          "AuthExit-ApiGwToLambdaRole": {
+            "id": "AuthExit-ApiGwToLambdaRole",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaRole",
             "children": {
-              "ImportFaceCheckInApp-ApiGwToLambdaRole": {
-                "id": "ImportFaceCheckInApp-ApiGwToLambdaRole",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwToLambdaRole/ImportFaceCheckInApp-ApiGwToLambdaRole",
+              "ImportAuthExit-ApiGwToLambdaRole": {
+                "id": "ImportAuthExit-ApiGwToLambdaRole",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaRole/ImportAuthExit-ApiGwToLambdaRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -513,7 +513,7 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwToLambdaRole/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaRole/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                   "aws:cdk:cloudformation:props": {
@@ -529,7 +529,7 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "roleName": "FaceCheckInApp-ApiGwToLambdaRole"
+                    "roleName": "AuthExit-ApiGwToLambdaRole"
                   }
                 },
                 "constructInfo": {
@@ -543,13 +543,13 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-ApiGwToLambdaInlinePolicy": {
-            "id": "FaceCheckInApp-ApiGwToLambdaInlinePolicy",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwToLambdaInlinePolicy",
+          "AuthExit-ApiGwToLambdaInlinePolicy": {
+            "id": "AuthExit-ApiGwToLambdaInlinePolicy",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaInlinePolicy",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-ApiGwToLambdaInlinePolicy/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaInlinePolicy/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                   "aws:cdk:cloudformation:props": {
@@ -563,18 +563,26 @@
                           "Effect": "Allow",
                           "Resource": {
                             "Fn::GetAtt": [
-                              "FaceCheckInAppapigatewayhandlerC2EBFE91",
+                              "AuthExitapigatewayhandler3EEE4E4C",
                               "Arn"
                             ]
                           }
+                        },
+                        {
+                          "Action": [
+                            "ses:SendEmail",
+                            "ses:SendRawEmail"
+                          ],
+                          "Effect": "Allow",
+                          "Resource": "arn:aws:ses:us-east-1:287190273383:identity/support@authexit.org"
                         }
                       ],
                       "Version": "2012-10-17"
                     },
-                    "policyName": "FaceCheckInAppApiGwToLambdaInlinePolicy85C4DE88",
+                    "policyName": "AuthExitApiGwToLambdaInlinePolicy2450818A",
                     "roles": [
                       {
-                        "Ref": "FaceCheckInAppApiGwToLambdaRoleBE123C0D"
+                        "Ref": "AuthExitApiGwToLambdaRole500A627D"
                       }
                     ]
                   }
@@ -590,9 +598,9 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpToSqs-API": {
-            "id": "FaceCheckInApp-HttpToSqs-API",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpToSqs-API",
+          "AuthExit-HttpToSqs-API": {
+            "id": "AuthExit-HttpToSqs-API",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpToSqs-API",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Api",
               "aws:cdk:cloudformation:props": {
@@ -612,7 +620,7 @@
                   ],
                   "maxAge": 43200
                 },
-                "name": "FaceCheckInApp-function",
+                "name": "AuthExit-function",
                 "protocolType": "HTTP"
               }
             },
@@ -621,23 +629,23 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpToSqsStage": {
-            "id": "FaceCheckInApp-HttpToSqsStage",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpToSqsStage",
+          "AuthExit-HttpToSqsStage": {
+            "id": "AuthExit-HttpToSqsStage",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpToSqsStage",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Stage",
               "aws:cdk:cloudformation:props": {
                 "accessLogSettings": {
                   "destinationArn": {
                     "Fn::GetAtt": [
-                      "FaceCheckInAppLoggroupBEC4A399",
+                      "AuthExitLoggroupC7BD9745",
                       "Arn"
                     ]
                   },
                   "format": "{ \"requestId\":\"$context.requestId\", \"ip\": \"$context.identity.sourceIp\", \"requestTime\":\"$context.requestTime\", \"httpMethod\":\"$context.httpMethod\",\"routeKey\":\"$context.routeKey\", \"status\":\"$context.status\",\"protocol\":\"$context.protocol\", \"responseLength\":\"$context.responseLength\" }"
                 },
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "autoDeploy": true,
                 "stageName": "$default"
@@ -648,18 +656,18 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-httpApiIntegSqsSendMessage": {
-            "id": "FaceCheckInApp-httpApiIntegSqsSendMessage",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-httpApiIntegSqsSendMessage",
+          "AuthExit-httpApiIntegSqsSendMessage": {
+            "id": "AuthExit-httpApiIntegSqsSendMessage",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-httpApiIntegSqsSendMessage",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Integration",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "credentialsArn": {
                   "Fn::GetAtt": [
-                    "FaceCheckInAppApiGwV2ToSqsRoleEB44322A",
+                    "AuthExitApiGwV2ToSqsRole0F41A033",
                     "Arn"
                   ]
                 },
@@ -668,7 +676,7 @@
                 "payloadFormatVersion": "1.0",
                 "requestParameters": {
                   "QueueUrl": {
-                    "Ref": "FaceCheckInAppbufferingQueue267EE4A1"
+                    "Ref": "AuthExitbufferingQueueCB41D069"
                   },
                   "MessageBody": "$request.body"
                 }
@@ -679,25 +687,25 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-httpApiIntegInvokeLambda": {
-            "id": "FaceCheckInApp-httpApiIntegInvokeLambda",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-httpApiIntegInvokeLambda",
+          "AuthExit-httpApiIntegInvokeLambda": {
+            "id": "AuthExit-httpApiIntegInvokeLambda",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-httpApiIntegInvokeLambda",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Integration",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "credentialsArn": {
                   "Fn::GetAtt": [
-                    "FaceCheckInAppApiGwToLambdaRoleBE123C0D",
+                    "AuthExitApiGwToLambdaRole500A627D",
                     "Arn"
                   ]
                 },
                 "integrationType": "AWS_PROXY",
                 "integrationUri": {
                   "Fn::GetAtt": [
-                    "FaceCheckInAppapigatewayhandlerC2EBFE91",
+                    "AuthExitapigatewayhandler3EEE4E4C",
                     "Arn"
                   ]
                 },
@@ -709,14 +717,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRouteSqsSendMsg2": {
-            "id": "FaceCheckInApp-HttpApiRouteSqsSendMsg2",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRouteSqsSendMsg2",
+          "AuthExit-HttpApiRouteSqsSendMsg2": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg2",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "GET /itemsbytype/{id}",
                 "target": {
@@ -725,7 +733,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -737,14 +745,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRouteSqsSendMsg4": {
-            "id": "FaceCheckInApp-HttpApiRouteSqsSendMsg4",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRouteSqsSendMsg4",
+          "AuthExit-HttpApiRouteSqsSendMsg4": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg4",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg4",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "GET /items/{id}",
                 "target": {
@@ -753,7 +761,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -765,14 +773,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRouteSqsSendMsg5": {
-            "id": "FaceCheckInApp-HttpApiRouteSqsSendMsg5",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRouteSqsSendMsg5",
+          "AuthExit-HttpApiRouteSqsSendMsg5": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg5",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg5",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "PUT /items",
                 "target": {
@@ -781,7 +789,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegSqsSendMessage"
+                        "Ref": "AuthExithttpApiIntegSqsSendMessage"
                       }
                     ]
                   ]
@@ -793,14 +801,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRouteSqsSendMsg6": {
-            "id": "FaceCheckInApp-HttpApiRouteSqsSendMsg6",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRouteSqsSendMsg6",
+          "AuthExit-HttpApiRouteSqsSendMsg6": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg6",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg6",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /items",
                 "target": {
@@ -809,7 +817,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegSqsSendMessage"
+                        "Ref": "AuthExithttpApiIntegSqsSendMessage"
                       }
                     ]
                   ]
@@ -821,14 +829,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRouteSqsSendMsg3": {
-            "id": "FaceCheckInApp-HttpApiRouteSqsSendMsg3",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRouteSqsSendMsg3",
+          "AuthExit-HttpApiRouteSqsSendMsg3": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg3",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg3",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "DELETE /removeitem/{id}",
                 "target": {
@@ -837,7 +845,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -849,14 +857,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRouteSqsSendMsg1": {
-            "id": "FaceCheckInApp-HttpApiRouteSqsSendMsg1",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRouteSqsSendMsg1",
+          "AuthExit-HttpApiRouteSqsSendMsg1": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg1",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg1",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /itemupdate",
                 "target": {
@@ -865,7 +873,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -877,14 +885,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRoute7": {
-            "id": "FaceCheckInApp-HttpApiRoute7",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRoute7",
+          "AuthExit-HttpApiRoute7": {
+            "id": "AuthExit-HttpApiRoute7",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute7",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /getsecrets",
                 "target": {
@@ -893,7 +901,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -905,14 +913,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRouteSqsSendMsg8": {
-            "id": "FaceCheckInApp-HttpApiRouteSqsSendMsg8",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRouteSqsSendMsg8",
+          "AuthExit-HttpApiRouteSqsSendMsg8": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg8",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg8",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "GET /userid/{id}",
                 "target": {
@@ -921,7 +929,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -933,14 +941,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRouteSqsSendMsg9": {
-            "id": "FaceCheckInApp-HttpApiRouteSqsSendMsg9",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRouteSqsSendMsg9",
+          "AuthExit-HttpApiRouteSqsSendMsg9": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg9",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg9",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "GET /items/{column}/{value}",
                 "target": {
@@ -949,7 +957,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -961,14 +969,14 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiRoute10": {
-            "id": "FaceCheckInApp-HttpApiRoute10",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiRoute10",
+          "AuthExit-HttpApiRoute10": {
+            "id": "AuthExit-HttpApiRoute10",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute10",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "FaceCheckInAppHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /items/filter2column",
                 "target": {
@@ -977,7 +985,35 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "FaceCheckInApphttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
+                      }
+                    ]
+                  ]
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
+              "version": "2.118.0"
+            }
+          },
+          "AuthExit-HttpApiRoute11": {
+            "id": "AuthExit-HttpApiRoute11",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute11",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
+              "aws:cdk:cloudformation:props": {
+                "apiId": {
+                  "Ref": "AuthExitHttpToSqsAPI"
+                },
+                "routeKey": "POST /sendemail",
+                "target": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "integrations/",
+                      {
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -991,11 +1027,11 @@
           },
           "MyLambdaLogGroup": {
             "id": "MyLambdaLogGroup",
-            "path": "FaceCheckInAppInfraCdkStack/MyLambdaLogGroup",
+            "path": "AuthExitAppInfraCdkStack/MyLambdaLogGroup",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "FaceCheckInAppInfraCdkStack/MyLambdaLogGroup/Resource",
+                "path": "AuthExitAppInfraCdkStack/MyLambdaLogGroup/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::Logs::LogGroup",
                   "aws:cdk:cloudformation:props": {
@@ -1005,7 +1041,7 @@
                         [
                           "/aws/lambda/",
                           {
-                            "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                            "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                           }
                         ]
                       ]
@@ -1024,24 +1060,24 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiLambdaPermission1": {
-            "id": "FaceCheckInApp-HttpApiLambdaPermission1",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiLambdaPermission1",
+          "AuthExit-HttpApiLambdaPermission1": {
+            "id": "AuthExit-HttpApiLambdaPermission1",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission1",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:us-east-1:949365052778:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "FaceCheckInAppHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/items/{id}"
                     ]
@@ -1054,24 +1090,24 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiLambdaPermission2": {
-            "id": "FaceCheckInApp-HttpApiLambdaPermission2",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiLambdaPermission2",
+          "AuthExit-HttpApiLambdaPermission2": {
+            "id": "AuthExit-HttpApiLambdaPermission2",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:us-east-1:949365052778:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "FaceCheckInAppHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/itemsbytype/{id}"
                     ]
@@ -1084,24 +1120,24 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiLambdaPermission3": {
-            "id": "FaceCheckInApp-HttpApiLambdaPermission3",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiLambdaPermission3",
+          "AuthExit-HttpApiLambdaPermission3": {
+            "id": "AuthExit-HttpApiLambdaPermission3",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission3",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:us-east-1:949365052778:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "FaceCheckInAppHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/itemupdate"
                     ]
@@ -1114,24 +1150,24 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiLambdaPermission4": {
-            "id": "FaceCheckInApp-HttpApiLambdaPermission4",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiLambdaPermission4",
+          "AuthExit-HttpApiLambdaPermission4": {
+            "id": "AuthExit-HttpApiLambdaPermission4",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission4",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:us-east-1:949365052778:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "FaceCheckInAppHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/getsecrets"
                     ]
@@ -1144,24 +1180,24 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiLambdaPermission5": {
-            "id": "FaceCheckInApp-HttpApiLambdaPermission5",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiLambdaPermission5",
+          "AuthExit-HttpApiLambdaPermission5": {
+            "id": "AuthExit-HttpApiLambdaPermission5",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission5",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:us-east-1:949365052778:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "FaceCheckInAppHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/userid/{id}"
                     ]
@@ -1174,24 +1210,24 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiLambdaPermission6": {
-            "id": "FaceCheckInApp-HttpApiLambdaPermission6",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiLambdaPermission6",
+          "AuthExit-HttpApiLambdaPermission6": {
+            "id": "AuthExit-HttpApiLambdaPermission6",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission6",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:us-east-1:949365052778:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "FaceCheckInAppHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/items/{column}/{value}"
                     ]
@@ -1204,24 +1240,24 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiLambdaPermission7": {
-            "id": "FaceCheckInApp-HttpApiLambdaPermission7",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiLambdaPermission7",
+          "AuthExit-HttpApiLambdaPermission7": {
+            "id": "AuthExit-HttpApiLambdaPermission7",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission7",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:us-east-1:949365052778:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "FaceCheckInAppHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/removeitem/{id}"
                     ]
@@ -1234,24 +1270,24 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiLambdaPermission8": {
-            "id": "FaceCheckInApp-HttpApiLambdaPermission8",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiLambdaPermission8",
+          "AuthExit-HttpApiLambdaPermission8": {
+            "id": "AuthExit-HttpApiLambdaPermission8",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission8",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "FaceCheckInAppapigatewayhandlerC2EBFE91"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:us-east-1:949365052778:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "FaceCheckInAppHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/items/filter2column"
                     ]
@@ -1264,9 +1300,39 @@
               "version": "2.118.0"
             }
           },
-          "FaceCheckInApp-HttpApiEndpoint": {
-            "id": "FaceCheckInApp-HttpApiEndpoint",
-            "path": "FaceCheckInAppInfraCdkStack/FaceCheckInApp-HttpApiEndpoint",
+          "AuthExit-HttpApiLambdaPermission9": {
+            "id": "AuthExit-HttpApiLambdaPermission9",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission9",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+              "aws:cdk:cloudformation:props": {
+                "action": "lambda:InvokeFunction",
+                "functionName": {
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
+                },
+                "principal": "apigateway.amazonaws.com",
+                "sourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:execute-api:us-east-1:287190273383:",
+                      {
+                        "Ref": "AuthExitHttpToSqsAPI"
+                      },
+                      "/*/*/sendemail"
+                    ]
+                  ]
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+              "version": "2.118.0"
+            }
+          },
+          "AuthExit-HttpApiEndpoint": {
+            "id": "AuthExit-HttpApiEndpoint",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiEndpoint",
             "constructInfo": {
               "fqn": "aws-cdk-lib.CfnOutput",
               "version": "2.118.0"
@@ -1274,11 +1340,11 @@
           },
           "CDKMetadata": {
             "id": "CDKMetadata",
-            "path": "FaceCheckInAppInfraCdkStack/CDKMetadata",
+            "path": "AuthExitAppInfraCdkStack/CDKMetadata",
             "children": {
               "Default": {
                 "id": "Default",
-                "path": "FaceCheckInAppInfraCdkStack/CDKMetadata/Default",
+                "path": "AuthExitAppInfraCdkStack/CDKMetadata/Default",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.CfnResource",
                   "version": "2.118.0"
@@ -1292,7 +1358,7 @@
           },
           "BootstrapVersion": {
             "id": "BootstrapVersion",
-            "path": "FaceCheckInAppInfraCdkStack/BootstrapVersion",
+            "path": "AuthExitAppInfraCdkStack/BootstrapVersion",
             "constructInfo": {
               "fqn": "aws-cdk-lib.CfnParameter",
               "version": "2.118.0"
@@ -1300,7 +1366,7 @@
           },
           "CheckBootstrapVersion": {
             "id": "CheckBootstrapVersion",
-            "path": "FaceCheckInAppInfraCdkStack/CheckBootstrapVersion",
+            "path": "AuthExitAppInfraCdkStack/CheckBootstrapVersion",
             "constructInfo": {
               "fqn": "aws-cdk-lib.CfnRule",
               "version": "2.118.0"

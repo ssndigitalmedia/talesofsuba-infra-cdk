@@ -9,10 +9,12 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as eventsources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as cdk from "aws-cdk-lib/core";
 
-export class FaceCheckInAppInfraCdkStack extends Stack {
+export class AuthExitAppInfraCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-    var project = "FaceCheckInApp-";
+    //var project = "FaceCheckInApp-";
+    //var project = "SplitEqualApp-";
+    var project = "AuthExit-";
     //var project = "RecipeAIApp-";
     // var project = "TalesOfSuba-";
     // var project = "KnowUrCircle-";
@@ -81,7 +83,7 @@ export class FaceCheckInAppInfraCdkStack extends Stack {
             resources: ["*"],
           }),
         ],
-      })
+      }),
     );
 
     const ApiGwToSqsRole = new iam.Role(this, `${project}ApiGwV2ToSqsRole`, {
@@ -99,7 +101,7 @@ export class FaceCheckInAppInfraCdkStack extends Stack {
             resources: [bufferingQueue.queueArn],
           }),
         ],
-      })
+      }),
     );
 
     //Lambda - apigatewayhandlerFunction
@@ -126,8 +128,13 @@ export class FaceCheckInAppInfraCdkStack extends Stack {
             actions: ["lambda:InvokeFunction", "secretsmanager:GetSecretValue"],
             resources: [ApiGatewayHandlerFunction.functionArn],
           }),
+          // Allow Lambda to send email via SES
+          new iam.PolicyStatement({
+            actions: ["ses:SendEmail", "ses:SendRawEmail"],
+            resources: ["arn:aws:ses:us-east-1:287190273383:identity/support@authexit.org"], // * for all
+          }),
         ],
-      })
+      }),
     );
 
     ////..................api Gateway................/////////
@@ -230,6 +237,11 @@ export class FaceCheckInAppInfraCdkStack extends Stack {
       routeKey: "POST /items/filter2column",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
+    const HttpApiRoute11 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute11`, {
+      apiId: api.ref,
+      routeKey: "POST /sendemail",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
 
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
@@ -290,6 +302,12 @@ export class FaceCheckInAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/items/filter2column`,
+    });
+    const HttpApiLambdaPermission9 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission9`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/sendemail`,
     });
 
     ////..................Outputs................/////////
