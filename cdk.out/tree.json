@@ -136,6 +136,51 @@
               "version": "2.118.0"
             }
           },
+          "AuthExitAdmin-event-table": {
+            "id": "AuthExitAdmin-event-table",
+            "path": "AuthExitAppInfraCdkStack/AuthExitAdmin-event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExitAdmin-event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "AuthExitAdmin-EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/AuthExitAdmin-event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
           "AuthExit-APIGatewayHandlerLambdaExecutionRole": {
             "id": "AuthExit-APIGatewayHandlerLambdaExecutionRole",
             "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole",
@@ -255,12 +300,20 @@
                             "dynamodb:UpdateItem"
                           ],
                           "Effect": "Allow",
-                          "Resource": {
-                            "Fn::GetAtt": [
-                              "AuthExiteventtableCBF725D3",
-                              "Arn"
-                            ]
-                          }
+                          "Resource": [
+                            {
+                              "Fn::GetAtt": [
+                                "AuthExitAdmineventtableF0F5006F",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
+                                "AuthExiteventtableCBF725D3",
+                                "Arn"
+                              ]
+                            }
+                          ]
                         },
                         {
                           "Action": [
@@ -444,6 +497,9 @@
                       "variables": {
                         "table": {
                           "Ref": "AuthExiteventtableCBF725D3"
+                        },
+                        "admintable": {
+                          "Ref": "AuthExitAdmineventtableF0F5006F"
                         }
                       }
                     },

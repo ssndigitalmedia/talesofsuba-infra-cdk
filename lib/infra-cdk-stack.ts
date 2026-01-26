@@ -15,6 +15,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
     //var project = "FaceCheckInApp-";
     //var project = "SplitEqualApp-";
     var project = "AuthExit-";
+    var projectadmin = "AuthExitAdmin-";
     //var project = "RecipeAIApp-";
     // var project = "TalesOfSuba-";
     // var project = "KnowUrCircle-";
@@ -59,6 +60,15 @@ export class AuthExitAppInfraCdkStack extends Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       tableName: `${project}EventTable`,
     });
+    //admintable
+    const admintable = new dynamodb.Table(this, `${projectadmin}event-table`, {
+      partitionKey: {
+        name: "id",
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      tableName: `${projectadmin}EventTable`,
+    });
 
     ////..................Roles................/////////
 
@@ -73,6 +83,11 @@ export class AuthExitAppInfraCdkStack extends Stack {
           new iam.PolicyStatement({
             actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan"],
             resources: [table.tableArn],
+          }),
+          // new table admintable
+          new iam.PolicyStatement({
+            actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan"],
+            resources: [admintable.tableArn],
           }),
           new iam.PolicyStatement({
             actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
@@ -117,6 +132,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
       role: APIGatewayHandlerLambdaExecutionRole,
       environment: {
         table: table.tableName,
+        admintable: admintable.tableName, // delete admintable
       },
     });
 
