@@ -262,6 +262,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       routeKey: "POST /sendemail",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
+    // admintable
+    const HttpApiRoute2admin = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg2admin`, {
+      apiId: api.ref,
+      routeKey: "GET /admin/itemsbytype/{id}",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
 
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
@@ -284,6 +290,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/itemsbytype/{id}`,
+    });
+    const HttpApiLambdaPermission2admin = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission2admin`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/admin/itemsbytype/{id}`,
     });
 
     const HttpApiLambdaPermission3 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission3`, {

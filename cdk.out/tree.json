@@ -491,7 +491,7 @@
                   "aws:cdk:cloudformation:props": {
                     "code": {
                       "s3Bucket": "cdk-hnb659fds-assets-287190273383-us-east-1",
-                      "s3Key": "1564700e7228af131c5467f93a8fc6030ff3687401506467c4fc842a58e057f1.zip"
+                      "s3Key": "fb9f8626aaee96146bd486cffd300fa8b364e422753ab0ccec67c2217ac261e5.zip"
                     },
                     "environment": {
                       "variables": {
@@ -1083,6 +1083,34 @@
               "version": "2.118.0"
             }
           },
+          "AuthExit-HttpApiRouteSqsSendMsg2admin": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg2admin",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2admin",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
+              "aws:cdk:cloudformation:props": {
+                "apiId": {
+                  "Ref": "AuthExitHttpToSqsAPI"
+                },
+                "routeKey": "GET /admin/itemsbytype/{id}",
+                "target": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "integrations/",
+                      {
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
+                      }
+                    ]
+                  ]
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
+              "version": "2.118.0"
+            }
+          },
           "MyLambdaLogGroup": {
             "id": "MyLambdaLogGroup",
             "path": "AuthExitAppInfraCdkStack/MyLambdaLogGroup",
@@ -1168,6 +1196,36 @@
                         "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/itemsbytype/{id}"
+                    ]
+                  ]
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+              "version": "2.118.0"
+            }
+          },
+          "AuthExit-HttpApiLambdaPermission2admin": {
+            "id": "AuthExit-HttpApiLambdaPermission2admin",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2admin",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+              "aws:cdk:cloudformation:props": {
+                "action": "lambda:InvokeFunction",
+                "functionName": {
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
+                },
+                "principal": "apigateway.amazonaws.com",
+                "sourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:execute-api:us-east-1:287190273383:",
+                      {
+                        "Ref": "AuthExitHttpToSqsAPI"
+                      },
+                      "/*/*/admin/itemsbytype/{id}"
                     ]
                   ]
                 }

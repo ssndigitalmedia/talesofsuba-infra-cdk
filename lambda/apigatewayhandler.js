@@ -3,12 +3,15 @@ const { DynamoDBDocumentClient, ScanCommand, PutCommand, UpdateCommand, GetComma
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client-secrets-manager");
-const tableName = process.env.table;
+
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const sesClient = new SESClient({ region: "us-east-1" });
 
 // initialise dynamoDB client
 exports.handler = async function (event, context) {
+  const isAdminRoute = event.resource?.startsWith("/admin");
+  const tableName = isAdminRoute ? process.env.admintable : process.env.table;
+
   let body;
   let statusCode = 200;
   console.log("tablename", tableName);
@@ -39,6 +42,12 @@ exports.handler = async function (event, context) {
     } else {
       switch (event.resource) {
         case "/itemsbytype/{id}":
+          body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": "type" }, ExpressionAttributeValues: { ":value": event.pathParameters.id } }));
+          body = body.Items;
+          break;
+        case "/admin/itemsbytype/{id}":
+          console.log("Incoming Get request : ", event.pathParameters.id);
+          console.log("Admin table name : ", tableName);
           body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": "type" }, ExpressionAttributeValues: { ":value": event.pathParameters.id } }));
           body = body.Items;
           break;
