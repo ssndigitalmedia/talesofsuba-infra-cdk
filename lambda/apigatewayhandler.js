@@ -1,12 +1,11 @@
-//const aws = require('aws-sdk');
-
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, PutCommand, UpdateCommand, GetCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client-secrets-manager");
 const tableName = process.env.table;
-const ses = new AWS.SES({ region: "us-east-1" });
+const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
+const sesClient = new SESClient({ region: "us-east-1" });
 
 // initialise dynamoDB client
 exports.handler = async function (event, context) {
@@ -20,12 +19,17 @@ exports.handler = async function (event, context) {
     console.log(event);
     console.log("Event Route Key: ", event.resource);
     if (event?.Records !== undefined && event?.Records[0]?.eventSource === "aws:sqs") {
+      const requestJSON = JSON.parse(event.Records[0].body);
+      // Decide table safely
+      const targetTable = requestJSON.tableName === "admintable" ? process.env.admintable : process.env.table;
+      console.log("Writing to table:", targetTable);
+      // OPTIONAL: remove tableName from item
+      delete requestJSON.tableName;
       console.log("Incoming message body from SQS : ", event);
       const { Records } = event;
-      const requestJSON = JSON.parse(Records[0].body);
       await dynamo.send(
         new PutCommand({
-          TableName: tableName,
+          TableName: targetTable,
           Item: requestJSON,
         }),
       );
@@ -138,13 +142,11 @@ exports.handler = async function (event, context) {
 
           if (!subject || !emailBody || !sender || !recipient) {
             statusCode = 400;
-            body = {
-              error: "Missing required fields: subject, body, sender, recipient",
-            };
+            body = { error: "Missing required fields: subject, body, sender, recipient" };
             break;
           }
 
-          const params = {
+          const command = new SendEmailCommand({
             Source: sender,
             Destination: {
               ToAddresses: [recipient],
@@ -156,10 +158,10 @@ exports.handler = async function (event, context) {
                 Html: { Data: emailBody },
               },
             },
-          };
+          });
 
           try {
-            const response = await ses.sendEmail(params).promise();
+            const response = await sesClient.send(command);
             console.log("Email sent successfully:", response.MessageId);
 
             body = {

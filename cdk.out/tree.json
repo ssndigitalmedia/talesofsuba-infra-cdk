@@ -267,7 +267,9 @@
                             "logs:CreateLogGroup",
                             "logs:CreateLogStream",
                             "logs:PutLogEvents",
-                            "secretsmanager:GetSecretValue"
+                            "secretsmanager:GetSecretValue",
+                            "ses:SendEmail",
+                            "ses:SendRawEmail"
                           ],
                           "Effect": "Allow",
                           "Resource": "*"
@@ -436,7 +438,7 @@
                   "aws:cdk:cloudformation:props": {
                     "code": {
                       "s3Bucket": "cdk-hnb659fds-assets-287190273383-us-east-1",
-                      "s3Key": "9739fffec4ef33b74f9b97a97c2b2523faa303c410b27761d5bc7ac5cc529d81.zip"
+                      "s3Key": "1564700e7228af131c5467f93a8fc6030ff3687401506467c4fc842a58e057f1.zip"
                     },
                     "environment": {
                       "variables": {

@@ -82,6 +82,10 @@ export class AuthExitAppInfraCdkStack extends Stack {
             actions: ["secretsmanager:GetSecretValue"],
             resources: ["*"],
           }),
+          new iam.PolicyStatement({
+            actions: ["ses:SendEmail", "ses:SendRawEmail"],
+            resources: ["*"],
+          }),
         ],
       }),
     );
