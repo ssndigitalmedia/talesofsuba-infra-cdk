@@ -9,12 +9,9 @@ const sesClient = new SESClient({ region: "us-east-1" });
 
 // initialise dynamoDB client
 exports.handler = async function (event, context) {
-  const isAdminRoute = event.resource?.startsWith("/admin");
-  const tableName = isAdminRoute ? process.env.ADMIN_TABLE : process.env.TAL_TABLE;
-
   let body;
   let statusCode = 200;
-  console.log("tablename", tableName);
+
   const headers = {
     "Content-Type": "application/json",
   };
@@ -24,7 +21,7 @@ exports.handler = async function (event, context) {
     if (event?.Records !== undefined && event?.Records[0]?.eventSource === "aws:sqs") {
       const requestJSON = JSON.parse(event.Records[0].body);
       // Decide table safely
-      const targetTable = requestJSON.tableName === "admintable" ? process.env.admintable : process.env.table;
+      const targetTable = requestJSON.tableName === "admintable" ? process.env.ADMIN_TABLE : process.env.TAL_TABLE;
       console.log("Writing to table:", targetTable);
       // OPTIONAL: remove tableName from item
       delete requestJSON.tableName;
@@ -40,6 +37,9 @@ exports.handler = async function (event, context) {
       body = JSON.parse(Records[0].body);
       console.log("SQS request Successfully written to DynamoDB");
     } else {
+      const isAdminRoute = event.resource?.startsWith("/admin");
+      const tableName = isAdminRoute ? process.env.ADMIN_TABLE : process.env.TAL_TABLE;
+      console.log("tablename", tableName);
       switch (event.resource) {
         case "/itemsbytype/{id}":
           body = await dynamo.send(
