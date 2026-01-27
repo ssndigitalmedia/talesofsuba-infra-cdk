@@ -91,69 +91,6 @@
               "version": "2.118.0"
             }
           },
-          "tal-event-table": {
-            "id": "tal-event-table",
-            "path": "AuthExitAppInfraCdkStack/tal-event-table",
-            "children": {
-              "Resource": {
-                "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/tal-event-table/Resource",
-                "attributes": {
-                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
-                  "aws:cdk:cloudformation:props": {
-                    "attributeDefinitions": [
-                      {
-                        "attributeName": "id",
-                        "attributeType": "S"
-                      },
-                      {
-                        "attributeName": "type",
-                        "attributeType": "S"
-                      }
-                    ],
-                    "billingMode": "PAY_PER_REQUEST",
-                    "globalSecondaryIndexes": [
-                      {
-                        "indexName": "type-index",
-                        "keySchema": [
-                          {
-                            "attributeName": "type",
-                            "keyType": "HASH"
-                          }
-                        ],
-                        "projection": {
-                          "projectionType": "ALL"
-                        }
-                      }
-                    ],
-                    "keySchema": [
-                      {
-                        "attributeName": "id",
-                        "keyType": "HASH"
-                      }
-                    ],
-                    "tableName": "tal-EventTable"
-                  }
-                },
-                "constructInfo": {
-                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
-                  "version": "2.118.0"
-                }
-              },
-              "ScalingRole": {
-                "id": "ScalingRole",
-                "path": "AuthExitAppInfraCdkStack/tal-event-table/ScalingRole",
-                "constructInfo": {
-                  "fqn": "aws-cdk-lib.Resource",
-                  "version": "2.118.0"
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
-              "version": "2.118.0"
-            }
-          },
           "AuthExitAdmin-event-table": {
             "id": "AuthExitAdmin-event-table",
             "path": "AuthExitAppInfraCdkStack/AuthExitAdmin-event-table",
@@ -206,6 +143,69 @@
               "ScalingRole": {
                 "id": "ScalingRole",
                 "path": "AuthExitAppInfraCdkStack/AuthExitAdmin-event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
+          "tal-event-table": {
+            "id": "tal-event-table",
+            "path": "AuthExitAppInfraCdkStack/tal-event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/tal-event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "tal-EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/tal-event-table/ScalingRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -560,11 +560,21 @@
                     },
                     "environment": {
                       "variables": {
-                        "table": {
-                          "Ref": "taleventtable6843E792"
-                        },
-                        "admintable": {
-                          "Ref": "AuthExitAdmineventtableF0F5006F"
+                        "TABLE_NAMES": {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "{\"AuthExitAdmin-\":\"",
+                              {
+                                "Ref": "AuthExitAdmineventtableF0F5006F"
+                              },
+                              "\",\"tal-\":\"",
+                              {
+                                "Ref": "taleventtable6843E792"
+                              },
+                              "\"}"
+                            ]
+                          ]
                         }
                       }
                     },

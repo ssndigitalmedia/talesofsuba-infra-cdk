@@ -15,8 +15,8 @@ export class AuthExitAppInfraCdkStack extends Stack {
     //var project = "FaceCheckInApp-";
     //var project = "SplitEqualApp-";
     var project = "AuthExit-";
-    var projectadmin = "AuthExitAdmin-";
-    var taltablename = "tal-";
+    const schoolNames = ["AuthExitAdmin-", "tal-"];
+    //const schoolNames = ["tal-", "school1", "school2", "school3"];
     //var project = "RecipeAIApp-";
     // var project = "TalesOfSuba-";
     // var project = "KnowUrCircle-";
@@ -54,58 +54,46 @@ export class AuthExitAppInfraCdkStack extends Stack {
     });
 
     ////..................DynamoDB................/////////
-    const table = new dynamodb.Table(this, `${taltablename}event-table`, {
-      partitionKey: {
-        name: "id",
-        type: dynamodb.AttributeType.STRING,
-      },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      tableName: `${taltablename}EventTable`,
-    });
-    table.addGlobalSecondaryIndex({
-      indexName: "type-index",
-      partitionKey: {
-        name: "type",
-        type: dynamodb.AttributeType.STRING,
-      },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
-    //admintable
-    const admintable = new dynamodb.Table(this, `${projectadmin}event-table`, {
-      partitionKey: {
-        name: "id",
-        type: dynamodb.AttributeType.STRING,
-      },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      tableName: `${projectadmin}EventTable`,
-    });
-    admintable.addGlobalSecondaryIndex({
-      indexName: "type-index",
-      partitionKey: {
-        name: "type",
-        type: dynamodb.AttributeType.STRING,
-      },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
-
+    const tables: { [key: string]: dynamodb.Table } = {};
+    for (const school of schoolNames) {
+      const table = new dynamodb.Table(this, `${school}event-table`, {
+        partitionKey: {
+          name: "id",
+          type: dynamodb.AttributeType.STRING,
+        },
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+        tableName: `${school}EventTable`,
+      });
+      table.addGlobalSecondaryIndex({
+        indexName: "type-index",
+        partitionKey: {
+          name: "type",
+          type: dynamodb.AttributeType.STRING,
+        },
+        projectionType: dynamodb.ProjectionType.ALL,
+      });
+      tables[school] = table;
+    }
     ////..................Roles................/////////
 
     const APIGatewayHandlerLambdaExecutionRole = new iam.Role(this, `${project}APIGatewayHandlerLambdaExecutionRole`, {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
       roleName: `${project}APIGatewayHandlerLambdaExecutionRole`,
     });
+    // collect all table ARNs dynamically
+    const allTableArns: string[] = [];
 
+    for (const school of schoolNames) {
+      const table = tables[school];
+      allTableArns.push(table.tableArn); // main table
+      allTableArns.push(`${table.tableArn}/index/*`); // GSI index
+    }
     APIGatewayHandlerLambdaExecutionRole.attachInlinePolicy(
       new iam.Policy(this, `${project}APIGatewayHandlerInlinePolicy`, {
         statements: [
           new iam.PolicyStatement({
             actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query"],
-            resources: [table.tableArn, `${table.tableArn}/index/*`],
-          }),
-          // new table admintable
-          new iam.PolicyStatement({
-            actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query"],
-            resources: [admintable.tableArn, `${admintable.tableArn}/index/*`],
+            resources: allTableArns,
           }),
           new iam.PolicyStatement({
             actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
@@ -149,8 +137,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: `${project}apigatewayhandler`,
       role: APIGatewayHandlerLambdaExecutionRole,
       environment: {
-        table: table.tableName,
-        admintable: admintable.tableName, // delete admintable
+        TABLE_NAMES: JSON.stringify(Object.fromEntries(Object.entries(tables).map(([key, table]) => [key, table.tableName]))),
       },
     });
 

@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/19ea566541d34dbbae8e9cac6f382e70eb79d9af0aa176c2bc8e9e2edef9a246.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/4c9f2c9075275025e171e443c517df3852fa037e0d2553c83cf3dc018b74d04d.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -52,20 +52,6 @@
             "data": "AuthExitLoggroupC7BD9745"
           }
         ],
-        "/AuthExitAppInfraCdkStack/tal-event-table": [
-          {
-            "type": "aws:cdk:hasPhysicalName",
-            "data": {
-              "Ref": "taleventtable6843E792"
-            }
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/tal-event-table/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "taleventtable6843E792"
-          }
-        ],
         "/AuthExitAppInfraCdkStack/AuthExitAdmin-event-table": [
           {
             "type": "aws:cdk:hasPhysicalName",
@@ -78,6 +64,20 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "AuthExitAdmineventtableF0F5006F"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/tal-event-table": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "taleventtable6843E792"
+            }
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/tal-event-table/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "taleventtable6843E792"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/Resource": [
