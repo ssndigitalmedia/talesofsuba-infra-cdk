@@ -10,7 +10,7 @@ const sesClient = new SESClient({ region: "us-east-1" });
 // initialise dynamoDB client
 exports.handler = async function (event, context) {
   const isAdminRoute = event.resource?.startsWith("/admin");
-  const tableName = isAdminRoute ? process.env.admintable : process.env.table;
+  const tableName = isAdminRoute ? process.env.ADMIN_TABLE : process.env.TAL_TABLE;
 
   let body;
   let statusCode = 200;

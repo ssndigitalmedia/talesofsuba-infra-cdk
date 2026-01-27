@@ -560,21 +560,11 @@
                     },
                     "environment": {
                       "variables": {
-                        "TABLE_NAMES": {
-                          "Fn::Join": [
-                            "",
-                            [
-                              "{\"AuthExitAdmin-\":\"",
-                              {
-                                "Ref": "AuthExitAdmineventtableF0F5006F"
-                              },
-                              "\",\"tal-\":\"",
-                              {
-                                "Ref": "taleventtable6843E792"
-                              },
-                              "\"}"
-                            ]
-                          ]
+                        "TAL_TABLE": {
+                          "Ref": "taleventtable6843E792"
+                        },
+                        "ADMIN_TABLE": {
+                          "Ref": "AuthExitAdmineventtableF0F5006F"
                         }
                       }
                     },
