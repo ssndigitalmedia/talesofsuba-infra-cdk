@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/2ff2e21da06c5ebf85f09e3352fca46c1ed29ead7a09ec6dd4c31d33fb613db7.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/19ea566541d34dbbae8e9cac6f382e70eb79d9af0aa176c2bc8e9e2edef9a246.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -52,18 +52,18 @@
             "data": "AuthExitLoggroupC7BD9745"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-event-table": [
+        "/AuthExitAppInfraCdkStack/tal-event-table": [
           {
             "type": "aws:cdk:hasPhysicalName",
             "data": {
-              "Ref": "AuthExiteventtableCBF725D3"
+              "Ref": "taleventtable6843E792"
             }
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-event-table/Resource": [
+        "/AuthExitAppInfraCdkStack/tal-event-table/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExiteventtableCBF725D3"
+            "data": "taleventtable6843E792"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExitAdmin-event-table": [

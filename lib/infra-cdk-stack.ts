@@ -16,11 +16,13 @@ export class AuthExitAppInfraCdkStack extends Stack {
     //var project = "SplitEqualApp-";
     var project = "AuthExit-";
     var projectadmin = "AuthExitAdmin-";
+    var taltablename = "tal-";
     //var project = "RecipeAIApp-";
     // var project = "TalesOfSuba-";
     // var project = "KnowUrCircle-";
     // var project = "SSNDigitalMedia-";
-
+    // Could be per environment
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "https://qa.authexit.org", "https://authexit.org"];
     ////..................SQS QUEUES................./////////
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
@@ -52,13 +54,13 @@ export class AuthExitAppInfraCdkStack extends Stack {
     });
 
     ////..................DynamoDB................/////////
-    const table = new dynamodb.Table(this, `${project}event-table`, {
+    const table = new dynamodb.Table(this, `${taltablename}event-table`, {
       partitionKey: {
         name: "id",
         type: dynamodb.AttributeType.STRING,
       },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      tableName: `${project}EventTable`,
+      tableName: `${taltablename}EventTable`,
     });
     table.addGlobalSecondaryIndex({
       indexName: "type-index",
@@ -103,7 +105,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
           // new table admintable
           new iam.PolicyStatement({
             actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query"],
-            resources: [admintable.tableArn, `${table.tableArn}/index/*`],
+            resources: [admintable.tableArn, `${admintable.tableArn}/index/*`],
           }),
           new iam.PolicyStatement({
             actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
@@ -180,8 +182,8 @@ export class AuthExitAppInfraCdkStack extends Stack {
         allowCredentials: false,
         allowHeaders: ["*"],
         allowMethods: ["GET", "POST", "PUT", "DELETE"],
-        allowOrigins: ["*"],
-        maxAge: 43200,
+        allowOrigins: corsOrigins,
+        maxAge: 3600,
       },
       name: `${project}function`,
       protocolType: "HTTP",
