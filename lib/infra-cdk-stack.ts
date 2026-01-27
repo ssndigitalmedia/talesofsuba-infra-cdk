@@ -60,6 +60,14 @@ export class AuthExitAppInfraCdkStack extends Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       tableName: `${project}EventTable`,
     });
+    table.addGlobalSecondaryIndex({
+      indexName: "type-index",
+      partitionKey: {
+        name: "type",
+        type: dynamodb.AttributeType.STRING,
+      },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
     //admintable
     const admintable = new dynamodb.Table(this, `${projectadmin}event-table`, {
       partitionKey: {
@@ -68,6 +76,14 @@ export class AuthExitAppInfraCdkStack extends Stack {
       },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       tableName: `${projectadmin}EventTable`,
+    });
+    admintable.addGlobalSecondaryIndex({
+      indexName: "type-index",
+      partitionKey: {
+        name: "type",
+        type: dynamodb.AttributeType.STRING,
+      },
+      projectionType: dynamodb.ProjectionType.ALL,
     });
 
     ////..................Roles................/////////
@@ -81,13 +97,13 @@ export class AuthExitAppInfraCdkStack extends Stack {
       new iam.Policy(this, `${project}APIGatewayHandlerInlinePolicy`, {
         statements: [
           new iam.PolicyStatement({
-            actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan"],
-            resources: [table.tableArn],
+            actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query"],
+            resources: [table.tableArn, `${table.tableArn}/index/*`],
           }),
           // new table admintable
           new iam.PolicyStatement({
-            actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan"],
-            resources: [admintable.tableArn],
+            actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query"],
+            resources: [admintable.tableArn, `${table.tableArn}/index/*`],
           }),
           new iam.PolicyStatement({
             actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
@@ -268,6 +284,11 @@ export class AuthExitAppInfraCdkStack extends Stack {
       routeKey: "GET /admin/itemsbytype/{id}",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
+    const HttpApiRoute2orgCode = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg2orgCode`, {
+      apiId: api.ref,
+      routeKey: "GET /{orgCode}/itemsbytype/{id}",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
 
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
@@ -290,6 +311,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/itemsbytype/{id}`,
+    });
+    const HttpApiLambdaPermission2orgCode = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission2orgCode`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/itemsbytype/{id}`,
     });
     const HttpApiLambdaPermission2admin = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission2admin`, {
       action: "lambda:InvokeFunction",

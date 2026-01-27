@@ -105,9 +105,27 @@
                       {
                         "attributeName": "id",
                         "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
                       }
                     ],
                     "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
                     "keySchema": [
                       {
                         "attributeName": "id",
@@ -150,9 +168,27 @@
                       {
                         "attributeName": "id",
                         "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
                       }
                     ],
                     "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
                     "keySchema": [
                       {
                         "attributeName": "id",
@@ -296,6 +332,7 @@
                             "dynamodb:Get*",
                             "dynamodb:List*",
                             "dynamodb:PutItem",
+                            "dynamodb:Query",
                             "dynamodb:Scan",
                             "dynamodb:UpdateItem"
                           ],
@@ -311,6 +348,20 @@
                               "Fn::GetAtt": [
                                 "AuthExiteventtableCBF725D3",
                                 "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "AuthExiteventtableCBF725D3",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
                               ]
                             }
                           ]
@@ -491,7 +542,7 @@
                   "aws:cdk:cloudformation:props": {
                     "code": {
                       "s3Bucket": "cdk-hnb659fds-assets-287190273383-us-east-1",
-                      "s3Key": "fb9f8626aaee96146bd486cffd300fa8b364e422753ab0ccec67c2217ac261e5.zip"
+                      "s3Key": "a18601b1412cbb5c1ebfe041713865b740b3e76b14a77ab2c367c8b6d77db1dc.zip"
                     },
                     "environment": {
                       "variables": {
@@ -1111,6 +1162,34 @@
               "version": "2.118.0"
             }
           },
+          "AuthExit-HttpApiRouteSqsSendMsg2orgCode": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg2orgCode",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2orgCode",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
+              "aws:cdk:cloudformation:props": {
+                "apiId": {
+                  "Ref": "AuthExitHttpToSqsAPI"
+                },
+                "routeKey": "GET /{orgCode}/itemsbytype/{id}",
+                "target": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "integrations/",
+                      {
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
+                      }
+                    ]
+                  ]
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
+              "version": "2.118.0"
+            }
+          },
           "MyLambdaLogGroup": {
             "id": "MyLambdaLogGroup",
             "path": "AuthExitAppInfraCdkStack/MyLambdaLogGroup",
@@ -1196,6 +1275,36 @@
                         "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/itemsbytype/{id}"
+                    ]
+                  ]
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+              "version": "2.118.0"
+            }
+          },
+          "AuthExit-HttpApiLambdaPermission2orgCode": {
+            "id": "AuthExit-HttpApiLambdaPermission2orgCode",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2orgCode",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+              "aws:cdk:cloudformation:props": {
+                "action": "lambda:InvokeFunction",
+                "functionName": {
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
+                },
+                "principal": "apigateway.amazonaws.com",
+                "sourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:execute-api:us-east-1:287190273383:",
+                      {
+                        "Ref": "AuthExitHttpToSqsAPI"
+                      },
+                      "/*/*/{orgCode}/itemsbytype/{id}"
                     ]
                   ]
                 }

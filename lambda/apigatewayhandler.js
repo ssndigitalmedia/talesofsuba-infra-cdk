@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, ScanCommand, PutCommand, UpdateCommand, GetCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, ScanCommand, PutCommand, UpdateCommand, GetCommand, DeleteCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client-secrets-manager");
@@ -42,19 +42,64 @@ exports.handler = async function (event, context) {
     } else {
       switch (event.resource) {
         case "/itemsbytype/{id}":
-          body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": "type" }, ExpressionAttributeValues: { ":value": event.pathParameters.id } }));
+          body = await dynamo.send(
+            new QueryCommand({
+              TableName: tableName,
+              IndexName: "type-index",
+              KeyConditionExpression: "#type = :type",
+              ExpressionAttributeNames: {
+                "#type": "type",
+              },
+              ExpressionAttributeValues: {
+                ":type": event.pathParameters.id,
+              },
+            }),
+          );
+          body = body.Items;
+          break;
+        case "{orgCode}/itemsbytype/{id}":
+          body = await dynamo.send(
+            new QueryCommand({
+              TableName: tableName,
+              IndexName: "type-index",
+              KeyConditionExpression: "#type = :type",
+              ExpressionAttributeNames: {
+                "#type": "type",
+              },
+              ExpressionAttributeValues: {
+                ":type": event.pathParameters.id,
+              },
+            }),
+          );
           body = body.Items;
           break;
         case "/admin/itemsbytype/{id}":
-          console.log("Incoming Get request : ", event.pathParameters.id);
-          console.log("Admin table name : ", tableName);
-          body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": "type" }, ExpressionAttributeValues: { ":value": event.pathParameters.id } }));
+          body = await dynamo.send(
+            new QueryCommand({
+              TableName: tableName,
+              IndexName: "type-index",
+              KeyConditionExpression: "#type = :type",
+              ExpressionAttributeNames: {
+                "#type": "type",
+              },
+              ExpressionAttributeValues: {
+                ":type": event.pathParameters.id,
+              },
+            }),
+          );
           body = body.Items;
           break;
         case "/items/{id}":
-          console.log("Incoming Get request : ", event.pathParameters.id);
-          body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": "slug" }, ExpressionAttributeValues: { ":value": event.pathParameters.id } }));
-          body = body.Items;
+          console.log("Incoming Get request:", event.pathParameters.id);
+          const getresult = await dynamo.send(
+            new GetCommand({
+              TableName: tableName,
+              Key: {
+                id: event.pathParameters.id,
+              },
+            }),
+          );
+          body = getresult.Item ? [getresult.Item] : [];
           break;
         case "/removeitem/{id}":
           console.log("Incoming Delete request : ", event.pathParameters.id);
@@ -72,7 +117,6 @@ exports.handler = async function (event, context) {
           body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": event.pathParameters.column }, ExpressionAttributeValues: { ":value": event.pathParameters.value } }));
           body = body.Items;
           break;
-
         case "/userid/{id}":
           body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": "userid" }, ExpressionAttributeValues: { ":value": event.pathParameters.id } }));
           body = body.Items;
@@ -121,10 +165,6 @@ exports.handler = async function (event, context) {
         case "/getsecrets":
           const secret_name = "prod/s3/ap-south";
           const responseobj = {};
-          // const secretData = await GetSecretValueCommand({
-          //   SecretId: secret_name,
-          // }).promise();
-
           const client = new SecretsManagerClient();
           const secretData = await client.send(
             new GetSecretValueCommand({
