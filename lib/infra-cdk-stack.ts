@@ -137,7 +137,6 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: `${project}apigatewayhandler`,
       role: APIGatewayHandlerLambdaExecutionRole,
       environment: {
-        TAL_TABLE: tables["tal-"].tableName,
         ADMIN_TABLE: tables["AuthExitAdmin-"].tableName,
         // add more if you onboard more schools
       },

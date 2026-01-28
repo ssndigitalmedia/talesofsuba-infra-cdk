@@ -560,9 +560,6 @@
                     },
                     "environment": {
                       "variables": {
-                        "TAL_TABLE": {
-                          "Ref": "taleventtable6843E792"
-                        },
                         "ADMIN_TABLE": {
                           "Ref": "AuthExitAdmineventtableF0F5006F"
                         }
