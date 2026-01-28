@@ -556,7 +556,7 @@
                   "aws:cdk:cloudformation:props": {
                     "code": {
                       "s3Bucket": "cdk-hnb659fds-assets-287190273383-us-east-1",
-                      "s3Key": "598cc58b4b9945fb757f2118ec6129ce60d6c58410430ff4790b7b42093d12f4.zip"
+                      "s3Key": "a7e466a3e38374c96431a499d3e6eca886bd7cc92f4f59c782d705fe44e2b7cc.zip"
                     },
                     "environment": {
                       "variables": {
@@ -852,7 +852,7 @@
                 "apiId": {
                   "Ref": "AuthExitHttpToSqsAPI"
                 },
-                "routeKey": "GET /itemsbytype/{id}",
+                "routeKey": "GET /{orgCode}/itemsbytype/{id}",
                 "target": {
                   "Fn::Join": [
                     "",
@@ -880,7 +880,7 @@
                 "apiId": {
                   "Ref": "AuthExitHttpToSqsAPI"
                 },
-                "routeKey": "GET /items/{id}",
+                "routeKey": "GET /{orgCode}/items/{id}",
                 "target": {
                   "Fn::Join": [
                     "",
@@ -908,7 +908,7 @@
                 "apiId": {
                   "Ref": "AuthExitHttpToSqsAPI"
                 },
-                "routeKey": "PUT /items",
+                "routeKey": "PUT /{orgCode}/items",
                 "target": {
                   "Fn::Join": [
                     "",
@@ -936,7 +936,7 @@
                 "apiId": {
                   "Ref": "AuthExitHttpToSqsAPI"
                 },
-                "routeKey": "POST /items",
+                "routeKey": "POST /{orgCode}/items",
                 "target": {
                   "Fn::Join": [
                     "",
@@ -964,35 +964,7 @@
                 "apiId": {
                   "Ref": "AuthExitHttpToSqsAPI"
                 },
-                "routeKey": "DELETE /removeitem/{id}",
-                "target": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "integrations/",
-                      {
-                        "Ref": "AuthExithttpApiIntegInvokeLambda"
-                      }
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiRouteSqsSendMsg1": {
-            "id": "AuthExit-HttpApiRouteSqsSendMsg1",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg1",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
-              "aws:cdk:cloudformation:props": {
-                "apiId": {
-                  "Ref": "AuthExitHttpToSqsAPI"
-                },
-                "routeKey": "POST /itemupdate",
+                "routeKey": "DELETE /{orgCode}/removeitem/{id}",
                 "target": {
                   "Fn::Join": [
                     "",
@@ -1020,63 +992,7 @@
                 "apiId": {
                   "Ref": "AuthExitHttpToSqsAPI"
                 },
-                "routeKey": "POST /getsecrets",
-                "target": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "integrations/",
-                      {
-                        "Ref": "AuthExithttpApiIntegInvokeLambda"
-                      }
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiRouteSqsSendMsg8": {
-            "id": "AuthExit-HttpApiRouteSqsSendMsg8",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg8",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
-              "aws:cdk:cloudformation:props": {
-                "apiId": {
-                  "Ref": "AuthExitHttpToSqsAPI"
-                },
-                "routeKey": "GET /userid/{id}",
-                "target": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "integrations/",
-                      {
-                        "Ref": "AuthExithttpApiIntegInvokeLambda"
-                      }
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiRouteSqsSendMsg9": {
-            "id": "AuthExit-HttpApiRouteSqsSendMsg9",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg9",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
-              "aws:cdk:cloudformation:props": {
-                "apiId": {
-                  "Ref": "AuthExitHttpToSqsAPI"
-                },
-                "routeKey": "GET /items/{column}/{value}",
+                "routeKey": "POST /{orgCode}/getsecrets",
                 "target": {
                   "Fn::Join": [
                     "",
@@ -1104,7 +1020,7 @@
                 "apiId": {
                   "Ref": "AuthExitHttpToSqsAPI"
                 },
-                "routeKey": "POST /items/filter2column",
+                "routeKey": "POST /{orgCode}/items/filter2column",
                 "target": {
                   "Fn::Join": [
                     "",
@@ -1132,63 +1048,7 @@
                 "apiId": {
                   "Ref": "AuthExitHttpToSqsAPI"
                 },
-                "routeKey": "POST /sendemail",
-                "target": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "integrations/",
-                      {
-                        "Ref": "AuthExithttpApiIntegInvokeLambda"
-                      }
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiRouteSqsSendMsg2admin": {
-            "id": "AuthExit-HttpApiRouteSqsSendMsg2admin",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2admin",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
-              "aws:cdk:cloudformation:props": {
-                "apiId": {
-                  "Ref": "AuthExitHttpToSqsAPI"
-                },
-                "routeKey": "GET /admin/itemsbytype/{id}",
-                "target": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "integrations/",
-                      {
-                        "Ref": "AuthExithttpApiIntegInvokeLambda"
-                      }
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_apigatewayv2.CfnRoute",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiRouteSqsSendMsg2orgCode": {
-            "id": "AuthExit-HttpApiRouteSqsSendMsg2orgCode",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2orgCode",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
-              "aws:cdk:cloudformation:props": {
-                "apiId": {
-                  "Ref": "AuthExitHttpToSqsAPI"
-                },
-                "routeKey": "GET /{orgCode}/itemsbytype/{id}",
+                "routeKey": "POST /{orgCode}/sendemail",
                 "target": {
                   "Fn::Join": [
                     "",
@@ -1261,7 +1121,7 @@
                       {
                         "Ref": "AuthExitHttpToSqsAPI"
                       },
-                      "/*/*/items/{id}"
+                      "/*/*/{orgCode}/items/{id}"
                     ]
                   ]
                 }
@@ -1291,97 +1151,7 @@
                       {
                         "Ref": "AuthExitHttpToSqsAPI"
                       },
-                      "/*/*/itemsbytype/{id}"
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiLambdaPermission2orgCode": {
-            "id": "AuthExit-HttpApiLambdaPermission2orgCode",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2orgCode",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
-              "aws:cdk:cloudformation:props": {
-                "action": "lambda:InvokeFunction",
-                "functionName": {
-                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
-                },
-                "principal": "apigateway.amazonaws.com",
-                "sourceArn": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:execute-api:us-east-1:287190273383:",
-                      {
-                        "Ref": "AuthExitHttpToSqsAPI"
-                      },
                       "/*/*/{orgCode}/itemsbytype/{id}"
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiLambdaPermission2admin": {
-            "id": "AuthExit-HttpApiLambdaPermission2admin",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2admin",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
-              "aws:cdk:cloudformation:props": {
-                "action": "lambda:InvokeFunction",
-                "functionName": {
-                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
-                },
-                "principal": "apigateway.amazonaws.com",
-                "sourceArn": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:execute-api:us-east-1:287190273383:",
-                      {
-                        "Ref": "AuthExitHttpToSqsAPI"
-                      },
-                      "/*/*/admin/itemsbytype/{id}"
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiLambdaPermission3": {
-            "id": "AuthExit-HttpApiLambdaPermission3",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission3",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
-              "aws:cdk:cloudformation:props": {
-                "action": "lambda:InvokeFunction",
-                "functionName": {
-                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
-                },
-                "principal": "apigateway.amazonaws.com",
-                "sourceArn": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:execute-api:us-east-1:287190273383:",
-                      {
-                        "Ref": "AuthExitHttpToSqsAPI"
-                      },
-                      "/*/*/itemupdate"
                     ]
                   ]
                 }
@@ -1411,67 +1181,7 @@
                       {
                         "Ref": "AuthExitHttpToSqsAPI"
                       },
-                      "/*/*/getsecrets"
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiLambdaPermission5": {
-            "id": "AuthExit-HttpApiLambdaPermission5",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission5",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
-              "aws:cdk:cloudformation:props": {
-                "action": "lambda:InvokeFunction",
-                "functionName": {
-                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
-                },
-                "principal": "apigateway.amazonaws.com",
-                "sourceArn": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:execute-api:us-east-1:287190273383:",
-                      {
-                        "Ref": "AuthExitHttpToSqsAPI"
-                      },
-                      "/*/*/userid/{id}"
-                    ]
-                  ]
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
-              "version": "2.118.0"
-            }
-          },
-          "AuthExit-HttpApiLambdaPermission6": {
-            "id": "AuthExit-HttpApiLambdaPermission6",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission6",
-            "attributes": {
-              "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
-              "aws:cdk:cloudformation:props": {
-                "action": "lambda:InvokeFunction",
-                "functionName": {
-                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
-                },
-                "principal": "apigateway.amazonaws.com",
-                "sourceArn": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:execute-api:us-east-1:287190273383:",
-                      {
-                        "Ref": "AuthExitHttpToSqsAPI"
-                      },
-                      "/*/*/items/{column}/{value}"
+                      "/*/*/{orgCode}/getsecrets"
                     ]
                   ]
                 }
@@ -1501,7 +1211,7 @@
                       {
                         "Ref": "AuthExitHttpToSqsAPI"
                       },
-                      "/*/*/removeitem/{id}"
+                      "/*/*/{orgCode}/removeitem/{id}"
                     ]
                   ]
                 }
@@ -1531,7 +1241,7 @@
                       {
                         "Ref": "AuthExitHttpToSqsAPI"
                       },
-                      "/*/*/items/filter2column"
+                      "/*/*/{orgCode}/items/filter2column"
                     ]
                   ]
                 }
@@ -1561,7 +1271,7 @@
                       {
                         "Ref": "AuthExitHttpToSqsAPI"
                       },
-                      "/*/*/sendemail"
+                      "/*/*/{orgCode}/sendemail"
                     ]
                   ]
                 }

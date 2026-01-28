@@ -215,69 +215,45 @@ export class AuthExitAppInfraCdkStack extends Stack {
 
     const HttpApiRoute2 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg2`, {
       apiId: api.ref,
-      routeKey: "GET /itemsbytype/{id}",
+      routeKey: "GET /{orgCode}/itemsbytype/{id}",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
     const HttpApiRoute4 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg4`, {
       apiId: api.ref,
-      routeKey: "GET /items/{id}",
+      routeKey: "GET /{orgCode}/items/{id}",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
     const HttpApiRoute5 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg5`, {
       apiId: api.ref,
-      routeKey: "PUT /items",
+      routeKey: "PUT /{orgCode}/items",
       target: `integrations/${httpApiIntegSqsSendMessage.ref}`,
     });
     const HttpApiRoute6 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg6`, {
       apiId: api.ref,
-      routeKey: "POST /items",
+      routeKey: "POST /{orgCode}/items",
       target: `integrations/${httpApiIntegSqsSendMessage.ref}`,
     });
     const HttpApiRoute3 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg3`, {
       apiId: api.ref,
-      routeKey: "DELETE /removeitem/{id}",
+      routeKey: "DELETE /{orgCode}/removeitem/{id}",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
-    const HttpApiRoute1 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg1`, {
-      apiId: api.ref,
-      routeKey: "POST /itemupdate",
-      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
-    });
+
     const HttpApiRoute7 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute7`, {
       apiId: api.ref,
-      routeKey: "POST /getsecrets",
+      routeKey: "POST /{orgCode}/getsecrets",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
-    const HttpApiRoute8 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg8`, {
-      apiId: api.ref,
-      routeKey: "GET /userid/{id}",
-      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
-    });
-    const HttpApiRoute9 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg9`, {
-      apiId: api.ref,
-      routeKey: "GET /items/{column}/{value}",
-      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
-    });
+
     const HttpApiRoute10 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute10`, {
       apiId: api.ref,
-      routeKey: "POST /items/filter2column",
+      routeKey: "POST /{orgCode}/items/filter2column",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
     const HttpApiRoute11 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute11`, {
       apiId: api.ref,
-      routeKey: "POST /sendemail",
-      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
-    });
-    // admintable
-    const HttpApiRoute2admin = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg2admin`, {
-      apiId: api.ref,
-      routeKey: "GET /admin/itemsbytype/{id}",
-      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
-    });
-    const HttpApiRoute2orgCode = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg2orgCode`, {
-      apiId: api.ref,
-      routeKey: "GET /{orgCode}/itemsbytype/{id}",
+      routeKey: "POST /{orgCode}/sendemail",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
@@ -294,70 +270,40 @@ export class AuthExitAppInfraCdkStack extends Stack {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/items/{id}`,
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/items/{id}`,
     });
 
     const HttpApiLambdaPermission2 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission2`, {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/itemsbytype/{id}`,
-    });
-    const HttpApiLambdaPermission2orgCode = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission2orgCode`, {
-      action: "lambda:InvokeFunction",
-      functionName: ApiGatewayHandlerFunction.functionName,
-      principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/itemsbytype/{id}`,
-    });
-    const HttpApiLambdaPermission2admin = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission2admin`, {
-      action: "lambda:InvokeFunction",
-      functionName: ApiGatewayHandlerFunction.functionName,
-      principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/admin/itemsbytype/{id}`,
-    });
-
-    const HttpApiLambdaPermission3 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission3`, {
-      action: "lambda:InvokeFunction",
-      functionName: ApiGatewayHandlerFunction.functionName,
-      principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/itemupdate`,
     });
 
     const HttpApiLambdaPermission4 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission4`, {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/getsecrets`,
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/getsecrets`,
     });
-    const HttpApiLambdaPermission5 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission5`, {
-      action: "lambda:InvokeFunction",
-      functionName: ApiGatewayHandlerFunction.functionName,
-      principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/userid/{id}`,
-    });
-    const HttpApiLambdaPermission6 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission6`, {
-      action: "lambda:InvokeFunction",
-      functionName: ApiGatewayHandlerFunction.functionName,
-      principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/items/{column}/{value}`,
-    });
+
     const HttpApiLambdaPermission7 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission7`, {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/removeitem/{id}`,
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/removeitem/{id}`,
     });
     const HttpApiLambdaPermission8 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission8`, {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/items/filter2column`,
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/items/filter2column`,
     });
     const HttpApiLambdaPermission9 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission9`, {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/sendemail`,
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/sendemail`,
     });
 
     ////..................Outputs................/////////

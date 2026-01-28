@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/19b85d8a5b10fa66b6240a5832f653b9655f7c4b1e8a93b0ad12ed9e7933a0cc.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/ed064999a4de96f78d4dde08d74b823239b99480f7e3042aee17ca0d05ba0ee6.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -188,28 +188,10 @@
             "data": "AuthExitHttpApiRouteSqsSendMsg3"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg1": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg1"
-          }
-        ],
         "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute7": [
           {
             "type": "aws:cdk:logicalId",
             "data": "AuthExitHttpApiRoute7"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg8": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg8"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg9": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg9"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute10": [
@@ -222,18 +204,6 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "AuthExitHttpApiRoute11"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2admin": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg2admin"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2orgCode": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg2orgCode"
           }
         ],
         "/AuthExitAppInfraCdkStack/MyLambdaLogGroup/Resource": [
@@ -254,40 +224,10 @@
             "data": "AuthExitHttpApiLambdaPermission2"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2orgCode": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission2orgCode"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2admin": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission2admin"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission3": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission3"
-          }
-        ],
         "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission4": [
           {
             "type": "aws:cdk:logicalId",
             "data": "AuthExitHttpApiLambdaPermission4"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission5": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission5"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission6": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission6"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission7": [
