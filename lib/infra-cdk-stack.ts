@@ -22,7 +22,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
     // var project = "KnowUrCircle-";
     // var project = "SSNDigitalMedia-";
     // Could be per environment
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "https://qa.authexit.org", "https://authexit.org"];
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "https://qa.authexit.org", "https://authexit.org", "https://www.authexit.org"];
     ////..................SQS QUEUES................./////////
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;

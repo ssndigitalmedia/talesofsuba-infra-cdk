@@ -739,7 +739,8 @@
                     "http://localhost:3000",
                     "http://localhost:3001",
                     "https://qa.authexit.org",
-                    "https://authexit.org"
+                    "https://authexit.org",
+                    "https://www.authexit.org"
                   ],
                   "maxAge": 3600
                 },
