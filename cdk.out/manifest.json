@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/ebce3bb9607ee3fcbc55edf74c21b2fce21b09e49f785c45199d47d7a1a6b7ec.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/51dd45e41871b4c14b6aa4aee47d745b9ffb9901058cf46278d21a93223c6b0e.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -78,6 +78,20 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "taleventtable6843E792"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/testschool-event-table": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "testschooleventtable38290A03"
+            }
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/testschool-event-table/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "testschooleventtable38290A03"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/Resource": [

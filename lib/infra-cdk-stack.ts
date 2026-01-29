@@ -15,7 +15,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
     //var project = "FaceCheckInApp-";
     //var project = "SplitEqualApp-";
     var project = "AuthExit-";
-    const schoolNames = ["AuthExitAdmin-", "tal-"];
+    const schoolNames = ["AuthExitAdmin-", "tal-", "testschool-"];
     //const schoolNames = ["tal-", "school1", "school2", "school3"];
     //var project = "RecipeAIApp-";
     // var project = "TalesOfSuba-";

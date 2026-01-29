@@ -217,6 +217,69 @@
               "version": "2.118.0"
             }
           },
+          "testschool-event-table": {
+            "id": "testschool-event-table",
+            "path": "AuthExitAppInfraCdkStack/testschool-event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/testschool-event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "testschool-EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/testschool-event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
           "AuthExit-APIGatewayHandlerLambdaExecutionRole": {
             "id": "AuthExit-APIGatewayHandlerLambdaExecutionRole",
             "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole",
@@ -351,6 +414,12 @@
                               ]
                             },
                             {
+                              "Fn::GetAtt": [
+                                "testschooleventtable38290A03",
+                                "Arn"
+                              ]
+                            },
+                            {
                               "Fn::Join": [
                                 "",
                                 [
@@ -371,6 +440,20 @@
                                   {
                                     "Fn::GetAtt": [
                                       "taleventtable6843E792",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "testschooleventtable38290A03",
                                       "Arn"
                                     ]
                                   },
