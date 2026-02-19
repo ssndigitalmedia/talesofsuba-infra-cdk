@@ -15,19 +15,23 @@ export class AuthExitAppInfraCdkStack extends Stack {
     //var project = "FaceCheckInApp-";
     //var project = "SplitEqualApp-";
     var project = "AuthExit-";
-    const schoolNames = ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4"];
+    var schoolNames: string[] = [];
     //const schoolNames = ["tal-", "school1", "school2", "school3"];
     //var project = "RecipeAIApp-";
     // var project = "TalesOfSuba-";
     // var project = "KnowUrCircle-";
     // var project = "SSNDigitalMedia-";
     // Could be per environment
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "https://qa.authexit.org", "https://authexit.org", "https://www.authexit.org"];
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "https://qa.authexit.org", "https://dev.authexit.org", "https://authexit.org", "https://www.authexit.org"];
     ////..................SQS QUEUES................./////////
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
+      schoolNames = ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4"];
+
     } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
       project = project + "qa-";
+      schoolNames = ["AuthExitAdmin-", "testschool-"];
+
     } else {
       return;
     }
@@ -74,6 +78,25 @@ export class AuthExitAppInfraCdkStack extends Stack {
       });
       tables[school] = table;
     }
+
+    // UserDevices Table
+    const userDevicesTable = new dynamodb.Table(this, `${project}UserDevices`, {
+      partitionKey: {
+        name: "id",
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      tableName: "UserDevices",
+    });
+
+    userDevicesTable.addGlobalSecondaryIndex({
+      indexName: "userKey-index",
+      partitionKey: {
+        name: "userKey",
+        type: dynamodb.AttributeType.STRING,
+      },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
     ////..................Roles................/////////
 
     const APIGatewayHandlerLambdaExecutionRole = new iam.Role(this, `${project}APIGatewayHandlerLambdaExecutionRole`, {
@@ -106,6 +129,14 @@ export class AuthExitAppInfraCdkStack extends Stack {
           new iam.PolicyStatement({
             actions: ["ses:SendEmail", "ses:SendRawEmail"],
             resources: ["*"],
+          }),
+          new iam.PolicyStatement({
+            actions: ["sns:Publish"],
+            resources: ["*"],
+          }),
+          new iam.PolicyStatement({
+            actions: ["dynamodb:Query"],
+            resources: [userDevicesTable.tableArn, `${userDevicesTable.tableArn}/index/*`],
           }),
         ],
       }),
@@ -256,6 +287,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
+    const HttpApiRoute12 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute12`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/sendpush",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
       logGroupName: "/aws/lambda/" + ApiGatewayHandlerFunction.functionName,
@@ -303,6 +340,13 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/sendemail`,
+    });
+
+    const HttpApiLambdaPermission10 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission10`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/sendpush`,
     });
 
     ////..................Outputs................/////////

@@ -6,6 +6,8 @@ const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client
 
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const sesClient = new SESClient({ region: "us-east-1" });
+const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
+const snsClient = new SNSClient({ region: "us-east-1" });
 async function resolveTableFromAdmin(event) {
   const adminTable = process.env.ADMIN_TABLE;
   let orgCode;
@@ -212,6 +214,64 @@ exports.handler = async function (event, context) {
               error: err.message,
             };
           }
+          break;
+        case "/{orgCode}/sendpush":
+          console.log("Incoming Push Notification Request");
+          const { role: rolePush, orgcode: orgPush, alertmessage } = JSON.parse(event.body);
+
+          if (!rolePush || !orgPush || !alertmessage) {
+            statusCode = 400;
+            body = { error: "Missing required fields: role, orgcode, alertmessage" };
+            break;
+          }
+
+          const roles = rolePush.split(",").map(r => r.trim());
+
+          const queryResult = await dynamo.send(
+            new QueryCommand({
+              TableName: tableName,
+              IndexName: "type-index",
+              KeyConditionExpression: "#type = :type",
+              ExpressionAttributeNames: {
+                "#type": "type",
+              },
+              ExpressionAttributeValues: {
+                ":type": "userdevice",
+              },
+            })
+          );
+
+          const devices = queryResult.Items ? queryResult.Items.filter(device =>
+            device.role && roles.some(role => device.role.includes(role))
+          ) : [];
+
+          if (devices.length === 0) {
+            body = { message: "No devices found" };
+            break;
+          }
+
+          const publishPromises = devices.map((device) => {
+            return snsClient.send(
+              new PublishCommand({
+                TargetArn: device.endpointArn,
+                Message: JSON.stringify({
+                  APNS: JSON.stringify({
+                    aps: {
+                      alert: {
+                        title: "Auth Exit",
+                        body: alertmessage,
+                      },
+                      sound: "default",
+                    },
+                  }),
+                }),
+                MessageStructure: "json",
+              })
+            );
+          });
+
+          await Promise.all(publishPromises);
+          body = { message: "Notification sent" };
           break;
         default:
           throw new Error(`Unsupported route: "${event.routeKey}"`);
