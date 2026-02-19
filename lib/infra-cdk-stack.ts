@@ -9,23 +9,29 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as eventsources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as cdk from "aws-cdk-lib/core";
 
-export class TalesofsubaInfraCdkStack extends Stack {
+export class AuthExitAppInfraCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-
-    var project = "";
-
+    //var project = "FaceCheckInApp-";
+    //var project = "SplitEqualApp-";
+    var project = "AuthExit-";
+    const schoolNames = ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4"];
+    //const schoolNames = ["tal-", "school1", "school2", "school3"];
+    //var project = "RecipeAIApp-";
+    // var project = "TalesOfSuba-";
+    // var project = "KnowUrCircle-";
+    // var project = "SSNDigitalMedia-";
+    // Could be per environment
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "https://qa.authexit.org", "https://authexit.org", "https://www.authexit.org"];
     ////..................SQS QUEUES................./////////
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
-      project = "TalesOfSuba-";
+      project = project;
     } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
-      project = "TalesOfSuba-qa-";
+      project = project + "qa-";
     } else {
       return;
     }
-
     ////..................SQS QUEUES................./////////
-
     // SQS DLQ
     const queueDlq = new sqs.Queue(this, `${project}DLQ`, {
       visibilityTimeout: Duration.seconds(300),
@@ -48,63 +54,61 @@ export class TalesofsubaInfraCdkStack extends Stack {
     });
 
     ////..................DynamoDB................/////////
-    const table = new dynamodb.Table(this, `${project}event-table`, {
-      partitionKey: {
-        name: "id",
-        type: dynamodb.AttributeType.STRING,
-      },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      tableName: `${project}EventTable`,
-    });
-
+    const tables: { [key: string]: dynamodb.Table } = {};
+    for (const school of schoolNames) {
+      const table = new dynamodb.Table(this, `${school}event-table`, {
+        partitionKey: {
+          name: "id",
+          type: dynamodb.AttributeType.STRING,
+        },
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+        tableName: `${school}EventTable`,
+      });
+      table.addGlobalSecondaryIndex({
+        indexName: "type-index",
+        partitionKey: {
+          name: "type",
+          type: dynamodb.AttributeType.STRING,
+        },
+        projectionType: dynamodb.ProjectionType.ALL,
+      });
+      tables[school] = table;
+    }
     ////..................Roles................/////////
-
-    // const SqsHandlerLambdaExecutionRole = new iam.Role(this, `${project}SqsHandlerLambdaExecutionRole`, {
-    //   assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
-    //   roleName: `${project}SqsHandlerLambdaExecutionRole`,
-    // });
-
-    // SqsHandlerLambdaExecutionRole.attachInlinePolicy(
-    //   new iam.Policy(this, `${project}SqsHandlerInlinePolicy`, {
-    //     statements: [
-    //       new iam.PolicyStatement({
-    //         actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem"],
-    //         resources: [table.tableArn],
-    //       }),
-    //       new iam.PolicyStatement({
-    //         actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
-    //         resources: ["*"],
-    //       }),
-    //       new iam.PolicyStatement({
-    //         actions: ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"],
-    //         resources: [bufferingQueue.queueArn],
-    //       }),
-    //       new iam.PolicyStatement({
-    //         actions: ["sqs:SendMessage"],
-    //         resources: [queueDlq.queueArn],
-    //       }),
-    //     ],
-    //   })
-    // );
 
     const APIGatewayHandlerLambdaExecutionRole = new iam.Role(this, `${project}APIGatewayHandlerLambdaExecutionRole`, {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
       roleName: `${project}APIGatewayHandlerLambdaExecutionRole`,
     });
+    // collect all table ARNs dynamically
+    const allTableArns: string[] = [];
 
+    for (const school of schoolNames) {
+      const table = tables[school];
+      allTableArns.push(table.tableArn); // main table
+      allTableArns.push(`${table.tableArn}/index/*`); // GSI index
+    }
     APIGatewayHandlerLambdaExecutionRole.attachInlinePolicy(
       new iam.Policy(this, `${project}APIGatewayHandlerInlinePolicy`, {
         statements: [
           new iam.PolicyStatement({
-            actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Scan"],
-            resources: [table.tableArn],
+            actions: ["dynamodb:List*", "dynamodb:DescribeReservedCapacity*", "dynamodb:DescribeLimits", "dynamodb:DescribeTimeToLive", "dynamodb:Get*", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query"],
+            resources: allTableArns,
           }),
           new iam.PolicyStatement({
             actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
             resources: ["*"],
           }),
+          new iam.PolicyStatement({
+            actions: ["secretsmanager:GetSecretValue"],
+            resources: ["*"],
+          }),
+          new iam.PolicyStatement({
+            actions: ["ses:SendEmail", "ses:SendRawEmail"],
+            resources: ["*"],
+          }),
         ],
-      })
+      }),
     );
 
     const ApiGwToSqsRole = new iam.Role(this, `${project}ApiGwV2ToSqsRole`, {
@@ -122,7 +126,7 @@ export class TalesofsubaInfraCdkStack extends Stack {
             resources: [bufferingQueue.queueArn],
           }),
         ],
-      })
+      }),
     );
 
     //Lambda - apigatewayhandlerFunction
@@ -133,7 +137,8 @@ export class TalesofsubaInfraCdkStack extends Stack {
       functionName: `${project}apigatewayhandler`,
       role: APIGatewayHandlerLambdaExecutionRole,
       environment: {
-        table: table.tableName,
+        ADMIN_TABLE: tables["AuthExitAdmin-"].tableName,
+        // add more if you onboard more schools
       },
     });
 
@@ -146,11 +151,16 @@ export class TalesofsubaInfraCdkStack extends Stack {
       new iam.Policy(this, `${project}ApiGwToLambdaInlinePolicy`, {
         statements: [
           new iam.PolicyStatement({
-            actions: ["lambda:InvokeFunction"],
+            actions: ["lambda:InvokeFunction", "secretsmanager:GetSecretValue"],
             resources: [ApiGatewayHandlerFunction.functionArn],
           }),
+          // Allow Lambda to send email via SES
+          new iam.PolicyStatement({
+            actions: ["ses:SendEmail", "ses:SendRawEmail"],
+            resources: ["arn:aws:ses:us-east-1:287190273383:identity/support@authexit.org"], // * for all
+          }),
         ],
-      })
+      }),
     );
 
     ////..................api Gateway................/////////
@@ -160,8 +170,8 @@ export class TalesofsubaInfraCdkStack extends Stack {
         allowCredentials: false,
         allowHeaders: ["*"],
         allowMethods: ["GET", "POST", "PUT", "DELETE"],
-        allowOrigins: ["*"],
-        maxAge: 43200,
+        allowOrigins: corsOrigins,
+        maxAge: 3600,
       },
       name: `${project}function`,
       protocolType: "HTTP",
@@ -191,19 +201,6 @@ export class TalesofsubaInfraCdkStack extends Stack {
 
     ////..................Lambda Function................/////////
 
-    //Lambda - SqsHandlerFunction
-
-    // const SqsHandlerFunction = new lambda.Function(this, `${project}sqshandler`, {
-    //   runtime: lambda.Runtime.NODEJS_20_X,
-    //   code: lambda.Code.fromAsset("lambda"),
-    //   handler: "sqshandler.handler",
-    //   functionName: `${project}sqshandler`,
-    //   role: SqsHandlerLambdaExecutionRole,
-    //   environment: {
-    //     table: table.tableName,
-    //   },
-    // });
-
     //Invoking Lambda after integrating with API Gateway
 
     const httpApiIntegInvokeLambda = new apigwv2.CfnIntegration(this, `${project}httpApiIntegInvokeLambda`, {
@@ -217,33 +214,45 @@ export class TalesofsubaInfraCdkStack extends Stack {
 
     const HttpApiRoute2 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg2`, {
       apiId: api.ref,
-      routeKey: "GET /itemsbytype/{id}",
+      routeKey: "GET /{orgCode}/itemsbytype/{id}",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
     const HttpApiRoute4 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg4`, {
       apiId: api.ref,
-      routeKey: "GET /items/{id}",
+      routeKey: "GET /{orgCode}/items/{id}",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
     const HttpApiRoute5 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg5`, {
       apiId: api.ref,
-      routeKey: "PUT /items",
+      routeKey: "PUT /{orgCode}/items",
       target: `integrations/${httpApiIntegSqsSendMessage.ref}`,
     });
     const HttpApiRoute6 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg6`, {
       apiId: api.ref,
-      routeKey: "POST /items",
+      routeKey: "POST /{orgCode}/items",
       target: `integrations/${httpApiIntegSqsSendMessage.ref}`,
     });
     const HttpApiRoute3 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg3`, {
       apiId: api.ref,
-      routeKey: "DELETE /items/{id}",
+      routeKey: "DELETE /{orgCode}/removeitem/{id}",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
-    const HttpApiRoute1 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg1`, {
+
+    const HttpApiRoute7 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute7`, {
       apiId: api.ref,
-      routeKey: "POST /itemupdate",
+      routeKey: "POST /{orgCode}/getsecrets",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
+    const HttpApiRoute10 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute10`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/items/filter2column",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+    const HttpApiRoute11 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute11`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/sendemail",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
@@ -260,21 +269,40 @@ export class TalesofsubaInfraCdkStack extends Stack {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/items/{id}`,
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/items/{id}`,
     });
 
     const HttpApiLambdaPermission2 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission2`, {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/itemsbytype/{id}`,
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/itemsbytype/{id}`,
     });
 
-    const HttpApiLambdaPermission3 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission3`, {
+    const HttpApiLambdaPermission4 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission4`, {
       action: "lambda:InvokeFunction",
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/itemupdate`,
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/getsecrets`,
+    });
+
+    const HttpApiLambdaPermission7 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission7`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/removeitem/{id}`,
+    });
+    const HttpApiLambdaPermission8 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission8`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/items/filter2column`,
+    });
+    const HttpApiLambdaPermission9 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission9`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/sendemail`,
     });
 
     ////..................Outputs................/////////
