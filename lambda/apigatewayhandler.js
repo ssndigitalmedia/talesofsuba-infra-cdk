@@ -215,6 +215,72 @@ exports.handler = async function (event, context) {
             };
           }
           break;
+        case "/{orgCode}/registerdevice":
+          console.log("Incoming Register Device Request");
+          const registerPayload = JSON.parse(event.body);
+
+          if (!registerPayload.email || !registerPayload.orgCode || !registerPayload.token) {
+            statusCode = 400;
+            body = { error: "Missing required fields for device registration" };
+            break;
+          }
+
+          const deviceId = registerPayload.id || `userdevice-${registerPayload.email}`;
+          let generatedEndpointArn = null;
+
+          // Attempt to create SNS Platform Endpoint
+          try {
+            const result = await snsClient.send(
+              new CreatePlatformEndpointCommand({
+                PlatformApplicationArn: process.env.PLATFORM_ARN,
+                Token: registerPayload.token,
+                CustomUserData: deviceId,
+              })
+            );
+            generatedEndpointArn = result.EndpointArn;
+            console.log("SNS Endpoint created successfully:", generatedEndpointArn);
+          } catch (createErr) {
+            if (createErr.message && createErr.message.includes("already exists with the same Token")) {
+              const match = createErr.message.match(/Endpoint (arn:aws:sns:[^ ]+) already/);
+              if (match && match[1]) {
+                generatedEndpointArn = match[1];
+                console.log(`Recovered existing endpointArn from error: ${generatedEndpointArn}`);
+              } else {
+                console.error("Error parsing existing EndpointArn", createErr);
+                statusCode = 500;
+                body = { error: "Failed to generate endpoint ARN", details: createErr.message };
+                break;
+              }
+            } else {
+              console.error("Error creating SNS endpoint", createErr);
+              statusCode = 500;
+              body = { error: "Failed to create SNS endpoint", details: createErr.message };
+              break;
+            }
+          }
+
+          // Build item to save in DynamoDB
+          const deviceItem = {
+            id: deviceId,
+            email: registerPayload.email,
+            role: registerPayload.roles ? registerPayload.roles.join(',') : registerPayload.role,
+            orgCode: registerPayload.orgCode,
+            token: registerPayload.token,
+            platform: registerPayload.platform || 'ios',
+            type: registerPayload.type || 'userdevice',
+            endpointArn: generatedEndpointArn
+          };
+
+          await dynamo.send(
+            new PutCommand({
+              TableName: tableName,
+              Item: deviceItem,
+            })
+          );
+
+          body = { message: "Device registered successfully", id: deviceId, endpointArn: generatedEndpointArn };
+          break;
+
         case "/{orgCode}/sendpush":
           console.log("Incoming Push Notification Request");
           const { role: rolePush, orgcode: orgPush, alertmessage } = JSON.parse(event.body);
@@ -246,55 +312,17 @@ exports.handler = async function (event, context) {
           ) : [];
 
           if (devices.length === 0) {
-            body = {
-              message: "No devices found",
-              debugQueryItems: queryResult.Items || [],
-              debugRoles: roles,
-              targetTable: tableName
-            };
+            body = { message: "No devices found" };
             break;
           }
 
           const publishPromises = devices.map(async (device) => {
             let endpointArn = device.endpointArn;
 
+            // Skip devices that don't have an endpoint registered
             if (!endpointArn) {
-              try {
-                const result = await snsClient.send(
-                  new CreatePlatformEndpointCommand({
-                    PlatformApplicationArn: process.env.PLATFORM_ARN,
-                    Token: device.token,
-                    CustomUserData: device.id,
-                  })
-                );
-                endpointArn = result.EndpointArn;
-              } catch (createErr) {
-                // If the token is already registered to another endpoint with different attributes
-                if (createErr.message && createErr.message.includes("already exists with the same Token")) {
-                  const match = createErr.message.match(/Endpoint (arn:aws:sns:[^ ]+) already/);
-                  if (match && match[1]) {
-                    endpointArn = match[1];
-                    console.log(`Recovered existing endpointArn from error: ${endpointArn}`);
-                  } else {
-                    throw createErr;
-                  }
-                } else {
-                  throw createErr;
-                }
-              }
-
-              if (endpointArn) {
-                await dynamo.send(
-                  new UpdateCommand({
-                    TableName: tableName,
-                    Key: { id: device.id },
-                    UpdateExpression: "SET endpointArn = :arn",
-                    ExpressionAttributeValues: {
-                      ":arn": endpointArn,
-                    },
-                  })
-                );
-              }
+              console.log(`Skipping device ${device.id} because it has no endpointArn`);
+              return;
             }
 
             const publishParams = {

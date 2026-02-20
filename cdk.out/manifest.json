@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-ap-south-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-ap-south-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-ap-south-1/d03b0a0ca495d14383a9bca1eb4ce4a6e02e59d6c2380f534988acfe8d942830.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-ap-south-1/eccb6cf3292a2a199e6b90d0b79ad56e39132d4edc082127a99eedb6107f4593.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -212,6 +212,12 @@
             "data": "AuthExitqaHttpApiRoute12"
           }
         ],
+        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute13": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthExitqaHttpApiRoute13"
+          }
+        ],
         "/AuthExitAppInfraCdkStack/MyLambdaLogGroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
@@ -258,6 +264,12 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "AuthExitqaHttpApiLambdaPermission10"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission11": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthExitqaHttpApiLambdaPermission11"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiEndpoint": [

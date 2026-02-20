@@ -276,6 +276,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
+    const HttpApiRoute13 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute13`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/registerdevice",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
       logGroupName: "/aws/lambda/" + ApiGatewayHandlerFunction.functionName,
@@ -330,6 +336,13 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/sendpush`,
+    });
+
+    const HttpApiLambdaPermission11 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission11`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/registerdevice`,
     });
 
     ////..................Outputs................/////////
