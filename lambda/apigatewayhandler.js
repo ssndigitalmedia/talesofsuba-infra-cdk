@@ -6,7 +6,7 @@ const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client
 
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const sesClient = new SESClient({ region: "us-east-1" });
-const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
+const { SNSClient, PublishCommand, CreatePlatformEndpointCommand, SetEndpointAttributesCommand } = require("@aws-sdk/client-sns");
 const snsClient = new SNSClient({ region: "us-east-1" });
 async function resolveTableFromAdmin(event) {
   const adminTable = process.env.ADMIN_TABLE;
@@ -246,28 +246,104 @@ exports.handler = async function (event, context) {
           ) : [];
 
           if (devices.length === 0) {
-            body = { message: "No devices found" };
+            body = {
+              message: "No devices found",
+              debugQueryItems: queryResult.Items || [],
+              debugRoles: roles,
+              targetTable: tableName
+            };
             break;
           }
 
-          const publishPromises = devices.map((device) => {
-            return snsClient.send(
-              new PublishCommand({
-                TargetArn: device.endpointArn,
-                Message: JSON.stringify({
-                  APNS: JSON.stringify({
-                    aps: {
-                      alert: {
-                        title: "Auth Exit",
-                        body: alertmessage,
-                      },
-                      sound: "default",
+          const publishPromises = devices.map(async (device) => {
+            let endpointArn = device.endpointArn;
+
+            if (!endpointArn) {
+              try {
+                const result = await snsClient.send(
+                  new CreatePlatformEndpointCommand({
+                    PlatformApplicationArn: process.env.PLATFORM_ARN,
+                    Token: device.token,
+                    CustomUserData: device.id,
+                  })
+                );
+                endpointArn = result.EndpointArn;
+              } catch (createErr) {
+                // If the token is already registered to another endpoint with different attributes
+                if (createErr.message && createErr.message.includes("already exists with the same Token")) {
+                  const match = createErr.message.match(/Endpoint (arn:aws:sns:[^ ]+) already/);
+                  if (match && match[1]) {
+                    endpointArn = match[1];
+                    console.log(`Recovered existing endpointArn from error: ${endpointArn}`);
+                  } else {
+                    throw createErr;
+                  }
+                } else {
+                  throw createErr;
+                }
+              }
+
+              if (endpointArn) {
+                await dynamo.send(
+                  new UpdateCommand({
+                    TableName: tableName,
+                    Key: { id: device.id },
+                    UpdateExpression: "SET endpointArn = :arn",
+                    ExpressionAttributeValues: {
+                      ":arn": endpointArn,
                     },
-                  }),
+                  })
+                );
+              }
+            }
+
+            const publishParams = {
+              TargetArn: endpointArn,
+              Message: JSON.stringify({
+                APNS: JSON.stringify({
+                  aps: {
+                    alert: {
+                      title: "Auth Exit",
+                      body: alertmessage,
+                    },
+                    sound: "default",
+                  },
                 }),
-                MessageStructure: "json",
-              })
-            );
+              }),
+              MessageStructure: "json",
+            };
+
+            try {
+              return await snsClient.send(new PublishCommand(publishParams));
+            } catch (error) {
+              if (error.name === "EndpointDisabledException" || error.message.includes("Endpoint is disabled")) {
+                console.log(`Endpoint ${endpointArn} is disabled. Deleting endpoint and removing from device record...`);
+
+                // Delete the disabled endpoint
+                try {
+                  const { DeleteEndpointCommand } = require("@aws-sdk/client-sns");
+                  await snsClient.send(new DeleteEndpointCommand({ EndpointArn: endpointArn }));
+                } catch (deleteError) {
+                  console.log(`Failed to delete endpoint ${endpointArn}:`, deleteError);
+                }
+
+                // Remove endpointArn from the database so it gets recreated next time
+                await dynamo.send(
+                  new UpdateCommand({
+                    TableName: tableName,
+                    Key: { id: device.id },
+                    UpdateExpression: "REMOVE endpointArn"
+                  })
+                );
+
+                console.error(`Endpoint ${endpointArn} was disabled and has been cleared.`);
+                // We don't retry immediately here because if it's disabled, the token is likely invalid
+                // and just re-enabling it usually fails again immediately.
+              } else {
+                console.error(`Error publishing to ${endpointArn}:`, error);
+                throw error;
+              }
+            }
           });
 
           await Promise.all(publishPromises);

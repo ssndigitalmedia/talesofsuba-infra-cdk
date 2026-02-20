@@ -217,69 +217,6 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-UserDevices": {
-            "id": "AuthExit-qa-UserDevices",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-UserDevices",
-            "children": {
-              "Resource": {
-                "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-UserDevices/Resource",
-                "attributes": {
-                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
-                  "aws:cdk:cloudformation:props": {
-                    "attributeDefinitions": [
-                      {
-                        "attributeName": "id",
-                        "attributeType": "S"
-                      },
-                      {
-                        "attributeName": "userKey",
-                        "attributeType": "S"
-                      }
-                    ],
-                    "billingMode": "PAY_PER_REQUEST",
-                    "globalSecondaryIndexes": [
-                      {
-                        "indexName": "userKey-index",
-                        "keySchema": [
-                          {
-                            "attributeName": "userKey",
-                            "keyType": "HASH"
-                          }
-                        ],
-                        "projection": {
-                          "projectionType": "ALL"
-                        }
-                      }
-                    ],
-                    "keySchema": [
-                      {
-                        "attributeName": "id",
-                        "keyType": "HASH"
-                      }
-                    ],
-                    "tableName": "UserDevices"
-                  }
-                },
-                "constructInfo": {
-                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
-                  "version": "2.118.0"
-                }
-              },
-              "ScalingRole": {
-                "id": "ScalingRole",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-UserDevices/ScalingRole",
-                "constructInfo": {
-                  "fqn": "aws-cdk-lib.Resource",
-                  "version": "2.118.0"
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
-              "version": "2.118.0"
-            }
-          },
           "AuthExit-qa-APIGatewayHandlerLambdaExecutionRole": {
             "id": "AuthExit-qa-APIGatewayHandlerLambdaExecutionRole",
             "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole",
@@ -450,36 +387,23 @@
                             "logs:PutLogEvents",
                             "secretsmanager:GetSecretValue",
                             "ses:SendEmail",
-                            "ses:SendRawEmail",
-                            "sns:Publish"
+                            "ses:SendRawEmail"
                           ],
                           "Effect": "Allow",
                           "Resource": "*"
                         },
                         {
-                          "Action": "dynamodb:Query",
+                          "Action": [
+                            "sns:CreatePlatformEndpoint",
+                            "sns:DeleteEndpoint",
+                            "sns:Publish",
+                            "sns:SetEndpointAttributes"
+                          ],
                           "Effect": "Allow",
                           "Resource": [
-                            {
-                              "Fn::GetAtt": [
-                                "AuthExitqaUserDevicesA4B8B76C",
-                                "Arn"
-                              ]
-                            },
-                            {
-                              "Fn::Join": [
-                                "",
-                                [
-                                  {
-                                    "Fn::GetAtt": [
-                                      "AuthExitqaUserDevicesA4B8B76C",
-                                      "Arn"
-                                    ]
-                                  },
-                                  "/index/*"
-                                ]
-                              ]
-                            }
+                            "*",
+                            "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
+                            "arn:aws:sns:us-east-1:287190273383:endpoint/APNS/AuthExit_Apple_PushNotification/*"
                           ]
                         }
                       ],
@@ -646,13 +570,14 @@
                   "aws:cdk:cloudformation:props": {
                     "code": {
                       "s3Bucket": "cdk-hnb659fds-assets-287190273383-ap-south-1",
-                      "s3Key": "b82aae7ee43b6faed709f7529268e72b6134f2b771f6fe57edef2f54c0cb76ff.zip"
+                      "s3Key": "d1d2db031a8b85c0028b595c81e3d43d17de3c06ee5b6e4570e88d292f527740.zip"
                     },
                     "environment": {
                       "variables": {
                         "ADMIN_TABLE": {
                           "Ref": "AuthExitAdmineventtableF0F5006F"
-                        }
+                        },
+                        "PLATFORM_ARN": "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification"
                       }
                     },
                     "functionName": "AuthExit-qa-apigatewayhandler",

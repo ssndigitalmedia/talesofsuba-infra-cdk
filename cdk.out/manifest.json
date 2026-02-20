@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-ap-south-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-ap-south-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-ap-south-1/59273497d2ad8d65383831be06dc99e7867672428f115dc51f4af4dc486d5820.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-ap-south-1/d03b0a0ca495d14383a9bca1eb4ce4a6e02e59d6c2380f534988acfe8d942830.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -78,20 +78,6 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "testschooleventtable38290A03"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-UserDevices": [
-          {
-            "type": "aws:cdk:hasPhysicalName",
-            "data": {
-              "Ref": "AuthExitqaUserDevicesA4B8B76C"
-            }
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-UserDevices/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaUserDevicesA4B8B76C"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole/Resource": [

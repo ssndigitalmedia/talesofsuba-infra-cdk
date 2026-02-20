@@ -79,24 +79,6 @@ export class AuthExitAppInfraCdkStack extends Stack {
       tables[school] = table;
     }
 
-    // UserDevices Table
-    const userDevicesTable = new dynamodb.Table(this, `${project}UserDevices`, {
-      partitionKey: {
-        name: "id",
-        type: dynamodb.AttributeType.STRING,
-      },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      tableName: "UserDevices",
-    });
-
-    userDevicesTable.addGlobalSecondaryIndex({
-      indexName: "userKey-index",
-      partitionKey: {
-        name: "userKey",
-        type: dynamodb.AttributeType.STRING,
-      },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
     ////..................Roles................/////////
 
     const APIGatewayHandlerLambdaExecutionRole = new iam.Role(this, `${project}APIGatewayHandlerLambdaExecutionRole`, {
@@ -131,12 +113,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
             resources: ["*"],
           }),
           new iam.PolicyStatement({
-            actions: ["sns:Publish"],
-            resources: ["*"],
-          }),
-          new iam.PolicyStatement({
-            actions: ["dynamodb:Query"],
-            resources: [userDevicesTable.tableArn, `${userDevicesTable.tableArn}/index/*`],
+            actions: ["sns:Publish", "sns:CreatePlatformEndpoint", "sns:SetEndpointAttributes", "sns:DeleteEndpoint"],
+            resources: [
+              "*",
+              "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
+              "arn:aws:sns:us-east-1:287190273383:endpoint/APNS/AuthExit_Apple_PushNotification/*"
+            ],
           }),
         ],
       }),
@@ -169,6 +151,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
       role: APIGatewayHandlerLambdaExecutionRole,
       environment: {
         ADMIN_TABLE: tables["AuthExitAdmin-"].tableName,
+        PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
         // add more if you onboard more schools
       },
     });
