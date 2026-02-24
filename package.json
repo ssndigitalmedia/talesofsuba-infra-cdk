@@ -4,7 +4,6 @@
   "bin": {
     "talesofsuba-infra-cdk": "bin/talesofsuba-infra-cdk.js"
   },
-  
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
@@ -24,6 +23,8 @@
     "@aws-cdk/aws-sqs": "^1.204.0",
     "@aws-cdk/core": "^1.204.0",
     "aws-cdk-lib": "2.118.0",
-    "constructs": "^10.0.0"
+    "constructs": "^10.0.0",
+    "dotenv": "^17.3.1",
+    "jose": "^6.1.3"
   }
 }

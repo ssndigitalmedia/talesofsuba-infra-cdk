@@ -8,6 +8,7 @@ const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const sesClient = new SESClient({ region: "us-east-1" });
 const { SNSClient, PublishCommand, CreatePlatformEndpointCommand, SetEndpointAttributesCommand } = require("@aws-sdk/client-sns");
 const snsClient = new SNSClient({ region: "us-east-1" });
+
 async function resolveTableFromAdmin(event) {
   const adminTable = process.env.ADMIN_TABLE;
   let orgCode;
@@ -85,6 +86,44 @@ exports.handler = async function (event, context) {
       console.log("tablename", tableName);
       switch (event.resource) {
         case "/{orgCode}/itemsbytype/{id}":
+          let queryType = event.pathParameters.id;
+          let skipAuth = false;
+
+          if (queryType === "organisation") {
+            skipAuth = true;
+          } else if (queryType === "student-login") {
+            queryType = "student";
+            skipAuth = true;
+          } else if (queryType === "user-login") {
+            queryType = "user";
+            skipAuth = true;
+          } else if (queryType === "otp") {
+            skipAuth = true;
+          }
+
+          // Token Verification Logic
+          if (!skipAuth) {
+            const authHeader = event.headers?.authorization || event.headers?.Authorization;
+            if (!authHeader || !authHeader.startsWith("Bearer ")) {
+              statusCode = 401;
+              body = { error: "Unauthorized: Missing or invalid token" };
+              break;
+            }
+
+            const token = authHeader.split(" ")[1];
+            try {
+              const { jwtVerify } = await import("jose");
+              const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+              await jwtVerify(token, secret);
+              console.log("Token verified successfully for getitemsbytype");
+            } catch (err) {
+              console.log("Token verification failed:", err.message);
+              statusCode = 401;
+              body = { error: "Unauthorized: Token verification failed" };
+              break;
+            }
+          }
+
           body = await dynamo.send(
             new QueryCommand({
               TableName: tableName,
@@ -94,7 +133,7 @@ exports.handler = async function (event, context) {
                 "#type": "type",
               },
               ExpressionAttributeValues: {
-                ":type": event.pathParameters.id,
+                ":type": queryType,
               },
             }),
           );

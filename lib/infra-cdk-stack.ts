@@ -152,6 +152,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
       environment: {
         ADMIN_TABLE: tables["AuthExitAdmin-"].tableName,
         PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
+        JWT_SECRET: process.env.JWT_SECRET || "your-default-secret",
         // add more if you onboard more schools
       },
     });

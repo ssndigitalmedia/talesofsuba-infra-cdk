@@ -11,21 +11,21 @@
     },
     "AuthExitAppInfraCdkStack": {
       "type": "aws:cloudformation:stack",
-      "environment": "aws://287190273383/ap-south-1",
+      "environment": "aws://287190273383/us-east-1",
       "properties": {
         "templateFile": "AuthExitAppInfraCdkStack.template.json",
         "terminationProtection": false,
         "validateOnSynth": false,
-        "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-ap-south-1",
-        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-ap-south-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-ap-south-1/eccb6cf3292a2a199e6b90d0b79ad56e39132d4edc082127a99eedb6107f4593.json",
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/ea2cdafb2380ea9599e7b37169a6b90df5aeb00a3888b7a824b77771bb067e87.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
           "AuthExitAppInfraCdkStack.assets"
         ],
         "lookupRole": {
-          "arn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-lookup-role-287190273383-ap-south-1",
+          "arn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-lookup-role-287190273383-us-east-1",
           "requiresBootstrapStackVersion": 8,
           "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
         }
@@ -34,22 +34,22 @@
         "AuthExitAppInfraCdkStack.assets"
       ],
       "metadata": {
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-DLQ/Resource": [
+        "/AuthExitAppInfraCdkStack/AuthExit-DLQ/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaDLQ33A95FDC"
+            "data": "AuthExitDLQ54B0F8AF"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-bufferingQueue/Resource": [
+        "/AuthExitAppInfraCdkStack/AuthExit-bufferingQueue/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqabufferingQueue52C11475"
+            "data": "AuthExitbufferingQueueCB41D069"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-Loggroup/Resource": [
+        "/AuthExitAppInfraCdkStack/AuthExit-Loggroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaLoggroup604B8C13"
+            "data": "AuthExitLoggroupC7BD9745"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExitAdmin-event-table": [
@@ -66,6 +66,20 @@
             "data": "AuthExitAdmineventtableF0F5006F"
           }
         ],
+        "/AuthExitAppInfraCdkStack/tal-event-table": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "taleventtable6843E792"
+            }
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/tal-event-table/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "taleventtable6843E792"
+          }
+        ],
         "/AuthExitAppInfraCdkStack/testschool-event-table": [
           {
             "type": "aws:cdk:hasPhysicalName",
@@ -80,142 +94,184 @@
             "data": "testschooleventtable38290A03"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole/Resource": [
+        "/AuthExitAppInfraCdkStack/school2event-table": [
           {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaAPIGatewayHandlerLambdaExecutionRoleC4DF215F"
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "school2eventtableE9D19466"
+            }
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy/Resource": [
+        "/AuthExitAppInfraCdkStack/school2event-table/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaAPIGatewayHandlerLambdaExecutionRoleDefaultPolicyBED5930F"
+            "data": "school2eventtableE9D19466"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerInlinePolicy/Resource": [
+        "/AuthExitAppInfraCdkStack/school3event-table": [
           {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaAPIGatewayHandlerInlinePolicy5F7BBAB7"
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "school3eventtableAA025EA5"
+            }
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwV2ToSqsRole/Resource": [
+        "/AuthExitAppInfraCdkStack/school3event-table/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaApiGwV2ToSqsRole6C3DE1B6"
+            "data": "school3eventtableAA025EA5"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwV2ToSqsInlinePolicy/Resource": [
+        "/AuthExitAppInfraCdkStack/school4event-table": [
           {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaApiGwV2ToSqsInlinePolicy01C6CCBB"
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "school4eventtable65D6645A"
+            }
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler/Resource": [
+        "/AuthExitAppInfraCdkStack/school4event-table/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaapigatewayhandler30BA7931"
+            "data": "school4eventtable65D6645A"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitqabufferingQueue7272DB27/Resource": [
+        "/AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaapigatewayhandlerSqsEventSourceAuthExitAppInfraCdkStackAuthExitqabufferingQueue7272DB27267D1714"
+            "data": "AuthExitAPIGatewayHandlerLambdaExecutionRole2845A0F9"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwToLambdaRole/Resource": [
+        "/AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaApiGwToLambdaRoleA95F8B87"
+            "data": "AuthExitAPIGatewayHandlerLambdaExecutionRoleDefaultPolicy38F42BEB"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwToLambdaInlinePolicy/Resource": [
+        "/AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerInlinePolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaApiGwToLambdaInlinePolicyEFBEFF69"
+            "data": "AuthExitAPIGatewayHandlerInlinePolicy3782EEE2"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpToSqs-API": [
+        "/AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpToSqsAPI"
+            "data": "AuthExitApiGwV2ToSqsRole0F41A033"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpToSqsStage": [
+        "/AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsInlinePolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpToSqsStage"
+            "data": "AuthExitApiGwV2ToSqsInlinePolicy8AB88B16"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-httpApiIntegSqsSendMessage": [
+        "/AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqahttpApiIntegSqsSendMessage"
+            "data": "AuthExitapigatewayhandler3EEE4E4C"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-httpApiIntegInvokeLambda": [
+        "/AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqahttpApiIntegInvokeLambda"
+            "data": "AuthExitapigatewayhandlerSqsEventSourceAuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D078DB581B"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg2": [
+        "/AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRouteSqsSendMsg2"
+            "data": "AuthExitApiGwToLambdaRole500A627D"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg4": [
+        "/AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaInlinePolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRouteSqsSendMsg4"
+            "data": "AuthExitApiGwToLambdaInlinePolicy2450818A"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg5": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpToSqs-API": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRouteSqsSendMsg5"
+            "data": "AuthExitHttpToSqsAPI"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg6": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpToSqsStage": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRouteSqsSendMsg6"
+            "data": "AuthExitHttpToSqsStage"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg3": [
+        "/AuthExitAppInfraCdkStack/AuthExit-httpApiIntegSqsSendMessage": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRouteSqsSendMsg3"
+            "data": "AuthExithttpApiIntegSqsSendMessage"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute7": [
+        "/AuthExitAppInfraCdkStack/AuthExit-httpApiIntegInvokeLambda": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRoute7"
+            "data": "AuthExithttpApiIntegInvokeLambda"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute10": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRoute10"
+            "data": "AuthExitHttpApiRouteSqsSendMsg2"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute11": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg4": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRoute11"
+            "data": "AuthExitHttpApiRouteSqsSendMsg4"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute12": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg5": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRoute12"
+            "data": "AuthExitHttpApiRouteSqsSendMsg5"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute13": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg6": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiRoute13"
+            "data": "AuthExitHttpApiRouteSqsSendMsg6"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg3": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthExitHttpApiRouteSqsSendMsg3"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute7": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthExitHttpApiRoute7"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute10": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthExitHttpApiRoute10"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute11": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthExitHttpApiRoute11"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute12": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthExitHttpApiRoute12"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute13": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AuthExitHttpApiRoute13"
           }
         ],
         "/AuthExitAppInfraCdkStack/MyLambdaLogGroup/Resource": [
@@ -224,58 +280,58 @@
             "data": "MyLambdaLogGroupA24CCB16"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission1": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission1": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiLambdaPermission1"
+            "data": "AuthExitHttpApiLambdaPermission1"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission2": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiLambdaPermission2"
+            "data": "AuthExitHttpApiLambdaPermission2"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission4": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission4": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiLambdaPermission4"
+            "data": "AuthExitHttpApiLambdaPermission4"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission7": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission7": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiLambdaPermission7"
+            "data": "AuthExitHttpApiLambdaPermission7"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission8": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission8": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiLambdaPermission8"
+            "data": "AuthExitHttpApiLambdaPermission8"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission9": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission9": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiLambdaPermission9"
+            "data": "AuthExitHttpApiLambdaPermission9"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission10": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission10": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiLambdaPermission10"
+            "data": "AuthExitHttpApiLambdaPermission10"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission11": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission11": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiLambdaPermission11"
+            "data": "AuthExitHttpApiLambdaPermission11"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiEndpoint": [
+        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiEndpoint": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitqaHttpApiEndpoint"
+            "data": "AuthExitHttpApiEndpoint"
           }
         ],
         "/AuthExitAppInfraCdkStack/CDKMetadata/Default": [
