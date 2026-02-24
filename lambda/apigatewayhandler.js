@@ -154,6 +154,30 @@ exports.handler = async function (event, context) {
           break;
         case "/{orgCode}/removeitem/{id}":
           console.log("Incoming Delete request : ", event.pathParameters.id);
+
+          // Token Verification Logic
+          {
+            const authHeader = event.headers?.authorization || event.headers?.Authorization;
+            if (!authHeader || !authHeader.startsWith("Bearer ")) {
+              statusCode = 401;
+              body = { error: "Unauthorized: Missing or invalid token" };
+              break;
+            }
+
+            const token = authHeader.split(" ")[1];
+            try {
+              const { jwtVerify } = await import("jose");
+              const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+              await jwtVerify(token, secret);
+              console.log("Token verified successfully for removeitem");
+            } catch (err) {
+              console.log("Token verification failed:", err.message);
+              statusCode = 401;
+              body = { error: "Unauthorized: Token verification failed" };
+              break;
+            }
+          }
+
           await dynamo.send(
             new DeleteCommand({
               TableName: tableName,
