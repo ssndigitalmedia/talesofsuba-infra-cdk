@@ -1,335 +1,277 @@
 {
   "version": "36.0.0",
   "artifacts": {
-    "AuthExitAppInfraCdkStack.assets": {
+    "DigitalPassAppInfraCdkStack.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
-        "file": "AuthExitAppInfraCdkStack.assets.json",
+        "file": "DigitalPassAppInfraCdkStack.assets.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
       }
     },
-    "AuthExitAppInfraCdkStack": {
+    "DigitalPassAppInfraCdkStack": {
       "type": "aws:cloudformation:stack",
-      "environment": "aws://287190273383/us-east-1",
+      "environment": "aws://949365052778/us-east-1",
       "properties": {
-        "templateFile": "AuthExitAppInfraCdkStack.template.json",
+        "templateFile": "DigitalPassAppInfraCdkStack.template.json",
         "terminationProtection": false,
         "validateOnSynth": false,
-        "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-us-east-1",
-        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/3641b0153e498b187d2b33af40c55ea12fafc2003af13fd797d9eb189c579601.json",
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::949365052778:role/cdk-hnb659fds-deploy-role-949365052778-us-east-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::949365052778:role/cdk-hnb659fds-cfn-exec-role-949365052778-us-east-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-949365052778-us-east-1/2f3cb9e41515935a1db18d62211ea0842139178c511f50e501c6135b99f7b747.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
-          "AuthExitAppInfraCdkStack.assets"
+          "DigitalPassAppInfraCdkStack.assets"
         ],
         "lookupRole": {
-          "arn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-lookup-role-287190273383-us-east-1",
+          "arn": "arn:${AWS::Partition}:iam::949365052778:role/cdk-hnb659fds-lookup-role-949365052778-us-east-1",
           "requiresBootstrapStackVersion": 8,
           "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
         }
       },
       "dependencies": [
-        "AuthExitAppInfraCdkStack.assets"
+        "DigitalPassAppInfraCdkStack.assets"
       ],
       "metadata": {
-        "/AuthExitAppInfraCdkStack/AuthExit-DLQ/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-DLQ/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitDLQ54B0F8AF"
+            "data": "DigitalPassDLQ86FD5A05"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-bufferingQueue/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-bufferingQueue/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitbufferingQueueCB41D069"
+            "data": "DigitalPassbufferingQueue33F696B2"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-Loggroup/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-Loggroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitLoggroupC7BD9745"
+            "data": "DigitalPassLoggroup9B629E4B"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExitAdmin-event-table": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-event-table": [
           {
             "type": "aws:cdk:hasPhysicalName",
             "data": {
-              "Ref": "AuthExitAdmineventtableF0F5006F"
+              "Ref": "DigitalPasseventtableE3BEED82"
             }
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExitAdmin-event-table/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-event-table/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitAdmineventtableF0F5006F"
+            "data": "DigitalPasseventtableE3BEED82"
           }
         ],
-        "/AuthExitAppInfraCdkStack/tal-event-table": [
-          {
-            "type": "aws:cdk:hasPhysicalName",
-            "data": {
-              "Ref": "taleventtable6843E792"
-            }
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/tal-event-table/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-APIGatewayHandlerLambdaExecutionRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "taleventtable6843E792"
+            "data": "DigitalPassAPIGatewayHandlerLambdaExecutionRoleC0E05BB0"
           }
         ],
-        "/AuthExitAppInfraCdkStack/testschool-event-table": [
-          {
-            "type": "aws:cdk:hasPhysicalName",
-            "data": {
-              "Ref": "testschooleventtable38290A03"
-            }
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/testschool-event-table/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "testschooleventtable38290A03"
+            "data": "DigitalPassAPIGatewayHandlerLambdaExecutionRoleDefaultPolicyE4C71C6B"
           }
         ],
-        "/AuthExitAppInfraCdkStack/school2event-table": [
-          {
-            "type": "aws:cdk:hasPhysicalName",
-            "data": {
-              "Ref": "school2eventtableE9D19466"
-            }
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/school2event-table/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-APIGatewayHandlerInlinePolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "school2eventtableE9D19466"
+            "data": "DigitalPassAPIGatewayHandlerInlinePolicy89F7F6BC"
           }
         ],
-        "/AuthExitAppInfraCdkStack/school3event-table": [
-          {
-            "type": "aws:cdk:hasPhysicalName",
-            "data": {
-              "Ref": "school3eventtableAA025EA5"
-            }
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/school3event-table/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-ApiGwV2ToSqsRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "school3eventtableAA025EA5"
+            "data": "DigitalPassApiGwV2ToSqsRole9B20648A"
           }
         ],
-        "/AuthExitAppInfraCdkStack/school4event-table": [
-          {
-            "type": "aws:cdk:hasPhysicalName",
-            "data": {
-              "Ref": "school4eventtable65D6645A"
-            }
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/school4event-table/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-ApiGwV2ToSqsInlinePolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "school4eventtable65D6645A"
+            "data": "DigitalPassApiGwV2ToSqsInlinePolicyC3847028"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-apigatewayhandler/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitAPIGatewayHandlerLambdaExecutionRole2845A0F9"
+            "data": "DigitalPassapigatewayhandler8478EB56"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-apigatewayhandler/SqsEventSource:DigitalPassAppInfraCdkStackDigitalPassbufferingQueue5C839E27/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitAPIGatewayHandlerLambdaExecutionRoleDefaultPolicy38F42BEB"
+            "data": "DigitalPassapigatewayhandlerSqsEventSourceDigitalPassAppInfraCdkStackDigitalPassbufferingQueue5C839E275C5F902B"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerInlinePolicy/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-ApiGwToLambdaRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitAPIGatewayHandlerInlinePolicy3782EEE2"
+            "data": "DigitalPassApiGwToLambdaRole91A833DA"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsRole/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-ApiGwToLambdaInlinePolicy/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitApiGwV2ToSqsRole0F41A033"
+            "data": "DigitalPassApiGwToLambdaInlinePolicyB75BFFD8"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsInlinePolicy/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpToSqs-API": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitApiGwV2ToSqsInlinePolicy8AB88B16"
+            "data": "DigitalPassHttpToSqsAPI"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpToSqsStage": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitapigatewayhandler3EEE4E4C"
+            "data": "DigitalPassHttpToSqsStage"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-httpApiIntegSqsSendMessage": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitapigatewayhandlerSqsEventSourceAuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D078DB581B"
+            "data": "DigitalPasshttpApiIntegSqsSendMessage"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaRole/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-httpApiIntegInvokeLambda": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitApiGwToLambdaRole500A627D"
+            "data": "DigitalPasshttpApiIntegInvokeLambda"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaInlinePolicy/Resource": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRouteSqsSendMsg2": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitApiGwToLambdaInlinePolicy2450818A"
+            "data": "DigitalPassHttpApiRouteSqsSendMsg2"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpToSqs-API": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRouteSqsSendMsg4": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpToSqsAPI"
+            "data": "DigitalPassHttpApiRouteSqsSendMsg4"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpToSqsStage": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRouteSqsSendMsg5": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpToSqsStage"
+            "data": "DigitalPassHttpApiRouteSqsSendMsg5"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-httpApiIntegSqsSendMessage": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRouteSqsSendMsg6": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExithttpApiIntegSqsSendMessage"
+            "data": "DigitalPassHttpApiRouteSqsSendMsg6"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-httpApiIntegInvokeLambda": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRouteSqsSendMsg3": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExithttpApiIntegInvokeLambda"
+            "data": "DigitalPassHttpApiRouteSqsSendMsg3"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRoute7": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg2"
+            "data": "DigitalPassHttpApiRoute7"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg4": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRoute10": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg4"
+            "data": "DigitalPassHttpApiRoute10"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg5": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRoute11": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg5"
+            "data": "DigitalPassHttpApiRoute11"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg6": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiRouteEmail": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg6"
+            "data": "DigitalPassHttpApiRouteEmail"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg3": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRouteSqsSendMsg3"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute7": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRoute7"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute10": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRoute10"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute11": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiRoute11"
-          }
-        ],
-        "/AuthExitAppInfraCdkStack/MyLambdaLogGroup/Resource": [
+        "/DigitalPassAppInfraCdkStack/MyLambdaLogGroup/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "MyLambdaLogGroupA24CCB16"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission1": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiLambdaPermission1": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission1"
+            "data": "DigitalPassHttpApiLambdaPermission1"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiLambdaPermission2": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission2"
+            "data": "DigitalPassHttpApiLambdaPermission2"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission4": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiLambdaPermission4": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission4"
+            "data": "DigitalPassHttpApiLambdaPermission4"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission7": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiLambdaPermission7": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission7"
+            "data": "DigitalPassHttpApiLambdaPermission7"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission8": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiLambdaPermission8": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission8"
+            "data": "DigitalPassHttpApiLambdaPermission8"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission9": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiLambdaPermission9": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiLambdaPermission9"
+            "data": "DigitalPassHttpApiLambdaPermission9"
           }
         ],
-        "/AuthExitAppInfraCdkStack/AuthExit-HttpApiEndpoint": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiLambdaPermissionEmail": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "AuthExitHttpApiEndpoint"
+            "data": "DigitalPassHttpApiLambdaPermissionEmail"
           }
         ],
-        "/AuthExitAppInfraCdkStack/CDKMetadata/Default": [
+        "/DigitalPassAppInfraCdkStack/DigitalPass-HttpApiEndpoint": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DigitalPassHttpApiEndpoint"
+          }
+        ],
+        "/DigitalPassAppInfraCdkStack/CDKMetadata/Default": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CDKMetadata"
           }
         ],
-        "/AuthExitAppInfraCdkStack/BootstrapVersion": [
+        "/DigitalPassAppInfraCdkStack/BootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "BootstrapVersion"
           }
         ],
-        "/AuthExitAppInfraCdkStack/CheckBootstrapVersion": [
+        "/DigitalPassAppInfraCdkStack/CheckBootstrapVersion": [
           {
             "type": "aws:cdk:logicalId",
             "data": "CheckBootstrapVersion"
           }
         ]
       },
-      "displayName": "AuthExitAppInfraCdkStack"
+      "displayName": "DigitalPassAppInfraCdkStack"
     },
     "Tree": {
       "type": "cdk:tree",

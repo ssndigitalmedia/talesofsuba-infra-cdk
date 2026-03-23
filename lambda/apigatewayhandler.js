@@ -6,48 +6,8 @@ const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client
 
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const sesClient = new SESClient({ region: "us-east-1" });
-async function resolveTableFromAdmin(event) {
-  const adminTable = process.env.ADMIN_TABLE;
-  let orgCode;
-  // admin routes
-  // org routes
-  if (event.pathParameters?.orgCode) {
-    orgCode = event.pathParameters.orgCode;
-  }
-  if (event.resource?.startsWith("/admin") || orgCode === "admin") {
-    return adminTable;
-  }
-  if (!orgCode) {
-    throw new Error("orgCode not found in request");
-  }
+const tableName = process.env.TABLE_NAME;
 
-  // Query admin table to find org table
-  const result = await dynamo.send(
-    new QueryCommand({
-      TableName: adminTable,
-      IndexName: "type-index", // ensure this exists
-      KeyConditionExpression: "#type = :type",
-      FilterExpression: "#url = :url AND #isactive = :active",
-      ExpressionAttributeNames: {
-        "#type": "type",
-        "#url": "url",
-        "#isactive": "isactive",
-      },
-      ExpressionAttributeValues: {
-        ":type": "organisation",
-        ":url": orgCode,
-        ":active": 1,
-      },
-    }),
-  );
-
-  if (!result.Items || result.Items.length === 0) {
-    throw new Error(`No active organisation found for orgCode=${orgCode}`);
-  }
-
-  return result.Items[0].orgtablename;
-}
-// initialise dynamoDB client
 exports.handler = async function (event, context) {
   let body;
   let statusCode = 200;
@@ -60,17 +20,14 @@ exports.handler = async function (event, context) {
     console.log("Event Route Key: ", event.resource);
     if (event?.Records !== undefined && event?.Records[0]?.eventSource === "aws:sqs") {
       const requestJSON = JSON.parse(event.Records[0].body);
-      // reuse same resolver
-      event.pathParameters = { orgCode: requestJSON.orgCode };
-      const targetTable = await resolveTableFromAdmin(event);
-      console.log("Writing to table:", targetTable);
+      console.log("Writing to table:", tableName);
       delete requestJSON.orgCode;
       delete requestJSON.tableName;
       console.log("Incoming message body from SQS : ", event);
       const { Records } = event;
       await dynamo.send(
         new PutCommand({
-          TableName: targetTable,
+          TableName: tableName,
           Item: requestJSON,
         }),
       );
@@ -78,11 +35,9 @@ exports.handler = async function (event, context) {
       body = JSON.parse(Records[0].body);
       console.log("SQS request Successfully written to DynamoDB");
     } else {
-      const tableName = await resolveTableFromAdmin(event);
-      console.log("Resolved DynamoDB table:", tableName);
-      console.log("tablename", tableName);
+      console.log("Using DynamoDB table:", tableName);
       switch (event.resource) {
-        case "/{orgCode}/itemsbytype/{id}":
+        case "/itemsbytype/{id}":
           body = await dynamo.send(
             new QueryCommand({
               TableName: tableName,
@@ -99,7 +54,21 @@ exports.handler = async function (event, context) {
           body = body.Items;
           break;
 
-        case "/{orgCode}/items/{id}":
+        case "/itemsbyemail/{email}":
+          body = await dynamo.send(
+            new QueryCommand({
+              TableName: tableName,
+              IndexName: "email-index",
+              KeyConditionExpression: "email = :email",
+              ExpressionAttributeValues: {
+                ":email": event.pathParameters.email,
+              },
+            }),
+          );
+          body = body.Items;
+          break;
+
+        case "/items/{id}":
           console.log("Incoming Get request:", event.pathParameters.id);
           const getresult = await dynamo.send(
             new GetCommand({
@@ -111,7 +80,7 @@ exports.handler = async function (event, context) {
           );
           body = getresult.Item ? [getresult.Item] : [];
           break;
-        case "/{orgCode}/removeitem/{id}":
+        case "/removeitem/{id}":
           console.log("Incoming Delete request : ", event.pathParameters.id);
           await dynamo.send(
             new DeleteCommand({
@@ -123,11 +92,11 @@ exports.handler = async function (event, context) {
           );
           body = `Deleted item ${event.pathParameters.id}`;
           break;
-        case "/{orgCode}/items/{column}/{value}":
+        case "/items/{column}/{value}":
           body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": event.pathParameters.column }, ExpressionAttributeValues: { ":value": event.pathParameters.value } }));
           body = body.Items;
           break;
-        case "/{orgCode}/items/filter2column":
+        case "/items/filter2column":
           // Parse JSON body (make sure body is JSON-parsed)
           const requestBody = JSON.parse(event.body);
           const { column1, value1, column2, value2 } = requestBody;
@@ -149,7 +118,7 @@ exports.handler = async function (event, context) {
           body = body.Items;
           console.log("DD sucessfully filtered 2 column : ", requestBody);
           break;
-        case "/{orgCode}/getsecrets":
+        case "/getsecrets":
           const secret_name = "prod/s3/ap-south";
           const responseobj = {};
           const client = new SecretsManagerClient();
@@ -170,7 +139,7 @@ exports.handler = async function (event, context) {
           console.log("secretData retrived sucessfully");
           body = responseobj;
           break;
-        case "/{orgCode}/sendemail":
+        case "/sendemail":
           console.log("Incoming Send Email Request");
 
           const emailRequest = JSON.parse(event.body);
@@ -214,7 +183,7 @@ exports.handler = async function (event, context) {
           }
           break;
         default:
-          throw new Error(`Unsupported route: "${event.routeKey}"`);
+          throw new Error(`Unsupported route: "${event.resource}"`);
       }
     }
   } catch (err) {
