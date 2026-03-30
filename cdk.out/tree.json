@@ -672,7 +672,7 @@
                     "http://localhost:3000",
                     "http://localhost:3001",
                     "http://192.168.1.160:3000/",
-                    "https://qapasskit.ssndigitalmedia.com",
+                    "https://devpasskit.ssndigitalmedia.com",
                     "https://passkit.ssndigitalmedia.com"
                   ],
                   "maxAge": 3600

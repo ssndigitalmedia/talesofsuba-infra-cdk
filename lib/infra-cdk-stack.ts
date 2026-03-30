@@ -15,7 +15,7 @@ export class DigitalPassAppInfraCdkStack extends Stack {
     var project = "DigitalPass-";
     const tableNames = ["DigitalPass-"];
     // Could be per environment
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://192.168.1.160:3000/", "https://qapasskit.ssndigitalmedia.com", "https://passkit.ssndigitalmedia.com"];
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://192.168.1.160:3000/", "https://devpasskit.ssndigitalmedia.com", "https://passkit.ssndigitalmedia.com"];
     ////..................SQS QUEUES................./////////
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
