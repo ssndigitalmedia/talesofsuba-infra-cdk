@@ -11,15 +11,13 @@ const snsClient = new SNSClient({ region: "us-east-1" });
 
 async function resolveTableFromAdmin(event) {
   const adminTable = process.env.ADMIN_TABLE;
-  let orgCode;
-  // admin routes
-  // org routes
-  if (event.pathParameters?.orgCode) {
-    orgCode = event.pathParameters.orgCode;
-  }
-  if (event.resource?.startsWith("/admin") || orgCode === "admin") {
+  let orgCode = event.pathParameters?.orgCode;
+
+  const routeKey = event.resource || event.routeKey || event.requestContext?.routeKey || "";
+  if (routeKey.includes("/admin") || orgCode === "admin") {
     return adminTable;
   }
+
   if (!orgCode) {
     throw new Error("orgCode not found in request");
   }
@@ -82,9 +80,34 @@ exports.handler = async function (event, context) {
       console.log("SQS request Successfully written to DynamoDB");
     } else {
       const tableName = await resolveTableFromAdmin(event);
-      console.log("Resolved DynamoDB table:", tableName);
-      console.log("tablename", tableName);
-      switch (event.resource) {
+      const rawRoute = event.resource || event.routeKey || event.requestContext?.routeKey || "";
+      const route = rawRoute.includes(" ") ? rawRoute.split(" ")[1] : rawRoute;
+
+      console.log("Resolved Routing:", { rawRoute, route, tableName });
+
+      // Shared JWT Verification Helper
+      const verifyJwt = async (routeLabel = "api") => {
+        const authHeader = event.headers?.authorization || event.headers?.Authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          console.log("Unauthorized: Missing or invalid token format", authHeader);
+          throw new Error("Unauthorized: Missing or invalid token");
+        }
+
+        const token = authHeader.split(" ")[1];
+        try {
+          const { jwtVerify } = await import("jose");
+          const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+          const { payload } = await jwtVerify(token, secret);
+
+          console.log(`Token verified successfully for ${routeLabel}`);
+          return payload;
+        } catch (err) {
+          console.log(`Token verification failed for ${routeLabel}:`, err.message);
+          throw new Error(`Unauthorized: Token verification failed - ${err.message}`);
+        }
+      };
+
+      switch (route) {
         case "/{orgCode}/itemsbytype/{id}":
           let queryType = event.pathParameters.id;
           let skipAuth = false;
@@ -101,25 +124,12 @@ exports.handler = async function (event, context) {
             skipAuth = true;
           }
 
-          // Token Verification Logic
           if (!skipAuth) {
-            const authHeader = event.headers?.authorization || event.headers?.Authorization;
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-              statusCode = 401;
-              body = { error: "Unauthorized: Missing or invalid token" };
-              break;
-            }
-
-            const token = authHeader.split(" ")[1];
             try {
-              const { jwtVerify } = await import("jose");
-              const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-              await jwtVerify(token, secret);
-              console.log("Token verified successfully for getitemsbytype");
+              await verifyJwt("getitemsbytype");
             } catch (err) {
-              console.log("Token verification failed:", err.message);
               statusCode = 401;
-              body = { error: "Unauthorized: Token verification failed" };
+              body = { error: err.message };
               break;
             }
           }
@@ -155,27 +165,12 @@ exports.handler = async function (event, context) {
         case "/{orgCode}/removeitem/{id}":
           console.log("Incoming Delete request : ", event.pathParameters.id);
 
-          // Token Verification Logic
-          {
-            const authHeader = event.headers?.authorization || event.headers?.Authorization;
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-              statusCode = 401;
-              body = { error: "Unauthorized: Missing or invalid token" };
-              break;
-            }
-
-            const token = authHeader.split(" ")[1];
-            try {
-              const { jwtVerify } = await import("jose");
-              const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-              await jwtVerify(token, secret);
-              console.log("Token verified successfully for removeitem");
-            } catch (err) {
-              console.log("Token verification failed:", err.message);
-              statusCode = 401;
-              body = { error: "Unauthorized: Token verification failed" };
-              break;
-            }
+          try {
+            await verifyJwt("removeitem");
+          } catch (err) {
+            statusCode = 401;
+            body = { error: err.message };
+            break;
           }
 
           await dynamo.send(
@@ -195,6 +190,15 @@ exports.handler = async function (event, context) {
         case "/{orgCode}/items/filter2column":
           // Parse JSON body (make sure body is JSON-parsed)
           const requestBody = JSON.parse(event.body);
+
+          try {
+            await verifyJwt("filter2column");
+          } catch (err) {
+            statusCode = 401;
+            body = { error: err.message };
+            break;
+          }
+
           const { column1, value1, column2, value2 } = requestBody;
           // Define the ScanCommand with FilterExpression for two conditions
           body = await dynamo.send(
@@ -446,11 +450,14 @@ exports.handler = async function (event, context) {
     }
   } catch (err) {
     console.log("Lamba error", err.message);
-    statusCode = 400;
+    // Preserving 401 if it was explicitly set in the switch, otherwise default to 400
+    if (statusCode !== 401) statusCode = 400;
     body = err.message;
   } finally {
     console.log("Lambda response", body);
-    body = JSON.stringify(body);
+    if (typeof body !== "string") {
+      body = JSON.stringify(body);
+    }
   }
   return {
     statusCode,

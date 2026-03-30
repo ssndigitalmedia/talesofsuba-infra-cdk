@@ -30,7 +30,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
 
     } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
       project = project + "qa-";
-      schoolNames = ["AuthExitAdmin-", "testschool-"];
+      schoolNames = ["AuthExitAdmin-", "testschool-", "school2", "school3", "school4"];
 
     } else {
       return;
@@ -152,7 +152,13 @@ export class AuthExitAppInfraCdkStack extends Stack {
       environment: {
         ADMIN_TABLE: tables["AuthExitAdmin-"].tableName,
         PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
-        JWT_SECRET: process.env.JWT_SECRET || "your-default-secret",
+        JWT_SECRET: (() => {
+          const secret = process.env.JWT_SECRET;
+          if (!secret) {
+            console.warn("\x1b[33m%s\x1b[0m", "WARNING: JWT_SECRET environment variable is not set. Using default secret - THIS IS INSECURE!");
+          }
+          return secret || "your-default-secret";
+        })(),
         // add more if you onboard more schools
       },
     });

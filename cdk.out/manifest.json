@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-ap-south-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-ap-south-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-ap-south-1/b4d3e014dbf5781b72e22aa26bf862e9c3dc387490157f43ee7e7db0589a56e8.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-ap-south-1/e923adbf3beafff1026da74f8a86489851ac2c18114217959751ba5cea3509ae.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -78,6 +78,48 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "testschooleventtable38290A03"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/school2event-table": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "school2eventtableE9D19466"
+            }
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/school2event-table/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "school2eventtableE9D19466"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/school3event-table": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "school3eventtableAA025EA5"
+            }
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/school3event-table/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "school3eventtableAA025EA5"
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/school4event-table": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "school4eventtable65D6645A"
+            }
+          }
+        ],
+        "/AuthExitAppInfraCdkStack/school4event-table/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "school4eventtable65D6645A"
           }
         ],
         "/AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole/Resource": [

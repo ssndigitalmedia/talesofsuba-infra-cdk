@@ -217,6 +217,195 @@
               "version": "2.118.0"
             }
           },
+          "school2event-table": {
+            "id": "school2event-table",
+            "path": "AuthExitAppInfraCdkStack/school2event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/school2event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "school2EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/school2event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
+          "school3event-table": {
+            "id": "school3event-table",
+            "path": "AuthExitAppInfraCdkStack/school3event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/school3event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "school3EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/school3event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
+          "school4event-table": {
+            "id": "school4event-table",
+            "path": "AuthExitAppInfraCdkStack/school4event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/school4event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "school4EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/school4event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
           "AuthExit-qa-APIGatewayHandlerLambdaExecutionRole": {
             "id": "AuthExit-qa-APIGatewayHandlerLambdaExecutionRole",
             "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole",
@@ -346,6 +535,24 @@
                             },
                             {
                               "Fn::GetAtt": [
+                                "school2eventtableE9D19466",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
+                                "school3eventtableAA025EA5",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
+                                "school4eventtable65D6645A",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
                                 "testschooleventtable38290A03",
                                 "Arn"
                               ]
@@ -357,6 +564,48 @@
                                   {
                                     "Fn::GetAtt": [
                                       "AuthExitAdmineventtableF0F5006F",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "school2eventtableE9D19466",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "school3eventtableAA025EA5",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "school4eventtable65D6645A",
                                       "Arn"
                                     ]
                                   },
@@ -570,7 +819,7 @@
                   "aws:cdk:cloudformation:props": {
                     "code": {
                       "s3Bucket": "cdk-hnb659fds-assets-287190273383-ap-south-1",
-                      "s3Key": "9b026c42b1a7c46209138732b14ade13ab1e4d3146e59c84e33b22bbd802a100.zip"
+                      "s3Key": "887f0fb11753b71dd51acbf671faf6990992c8a2dd69056a3e126caf8ff14d2b.zip"
                     },
                     "environment": {
                       "variables": {
@@ -578,7 +827,7 @@
                           "Ref": "AuthExitAdmineventtableF0F5006F"
                         },
                         "PLATFORM_ARN": "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
-                        "JWT_SECRET": "secret-key-authexit-2026-Akkupatam"
+                        "JWT_SECRET": "your-default-secret"
                       }
                     },
                     "functionName": "AuthExit-qa-apigatewayhandler",
