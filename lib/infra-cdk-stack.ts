@@ -26,7 +26,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
     ////..................SQS QUEUES................./////////
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
-      schoolNames = ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4"];
+      schoolNames = ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4", "school5", "school6", "school7", "school8"];
 
     } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
       project = project + "qa-";

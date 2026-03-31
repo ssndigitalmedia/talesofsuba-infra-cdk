@@ -8,17 +8,17 @@
         "id": "AuthExitAppInfraCdkStack",
         "path": "AuthExitAppInfraCdkStack",
         "children": {
-          "AuthExit-qa-DLQ": {
-            "id": "AuthExit-qa-DLQ",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-DLQ",
+          "AuthExit-DLQ": {
+            "id": "AuthExit-DLQ",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-DLQ",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-DLQ/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-DLQ/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::SQS::Queue",
                   "aws:cdk:cloudformation:props": {
-                    "queueName": "AuthExit-qa-DLQ",
+                    "queueName": "AuthExit-DLQ",
                     "visibilityTimeout": 300
                   }
                 },
@@ -33,21 +33,21 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-bufferingQueue": {
-            "id": "AuthExit-qa-bufferingQueue",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-bufferingQueue",
+          "AuthExit-bufferingQueue": {
+            "id": "AuthExit-bufferingQueue",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-bufferingQueue",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-bufferingQueue/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-bufferingQueue/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::SQS::Queue",
                   "aws:cdk:cloudformation:props": {
-                    "queueName": "AuthExit-qa-bufferingQueue",
+                    "queueName": "AuthExit-bufferingQueue",
                     "redrivePolicy": {
                       "deadLetterTargetArn": {
                         "Fn::GetAtt": [
-                          "AuthExitqaDLQ33A95FDC",
+                          "AuthExitDLQ54B0F8AF",
                           "Arn"
                         ]
                       },
@@ -67,13 +67,13 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-Loggroup": {
-            "id": "AuthExit-qa-Loggroup",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-Loggroup",
+          "AuthExit-Loggroup": {
+            "id": "AuthExit-Loggroup",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-Loggroup",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-Loggroup/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-Loggroup/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::Logs::LogGroup",
                   "aws:cdk:cloudformation:props": {
@@ -143,6 +143,69 @@
               "ScalingRole": {
                 "id": "ScalingRole",
                 "path": "AuthExitAppInfraCdkStack/AuthExitAdmin-event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
+          "tal-event-table": {
+            "id": "tal-event-table",
+            "path": "AuthExitAppInfraCdkStack/tal-event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/tal-event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "tal-EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/tal-event-table/ScalingRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -406,13 +469,265 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-APIGatewayHandlerLambdaExecutionRole": {
-            "id": "AuthExit-qa-APIGatewayHandlerLambdaExecutionRole",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole",
+          "school5event-table": {
+            "id": "school5event-table",
+            "path": "AuthExitAppInfraCdkStack/school5event-table",
             "children": {
-              "ImportAuthExit-qa-APIGatewayHandlerLambdaExecutionRole": {
-                "id": "ImportAuthExit-qa-APIGatewayHandlerLambdaExecutionRole",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole/ImportAuthExit-qa-APIGatewayHandlerLambdaExecutionRole",
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/school5event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "school5EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/school5event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
+          "school6event-table": {
+            "id": "school6event-table",
+            "path": "AuthExitAppInfraCdkStack/school6event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/school6event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "school6EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/school6event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
+          "school7event-table": {
+            "id": "school7event-table",
+            "path": "AuthExitAppInfraCdkStack/school7event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/school7event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "school7EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/school7event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
+          "school8event-table": {
+            "id": "school8event-table",
+            "path": "AuthExitAppInfraCdkStack/school8event-table",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AuthExitAppInfraCdkStack/school8event-table/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::DynamoDB::Table",
+                  "aws:cdk:cloudformation:props": {
+                    "attributeDefinitions": [
+                      {
+                        "attributeName": "id",
+                        "attributeType": "S"
+                      },
+                      {
+                        "attributeName": "type",
+                        "attributeType": "S"
+                      }
+                    ],
+                    "billingMode": "PAY_PER_REQUEST",
+                    "globalSecondaryIndexes": [
+                      {
+                        "indexName": "type-index",
+                        "keySchema": [
+                          {
+                            "attributeName": "type",
+                            "keyType": "HASH"
+                          }
+                        ],
+                        "projection": {
+                          "projectionType": "ALL"
+                        }
+                      }
+                    ],
+                    "keySchema": [
+                      {
+                        "attributeName": "id",
+                        "keyType": "HASH"
+                      }
+                    ],
+                    "tableName": "school8EventTable"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_dynamodb.CfnTable",
+                  "version": "2.118.0"
+                }
+              },
+              "ScalingRole": {
+                "id": "ScalingRole",
+                "path": "AuthExitAppInfraCdkStack/school8event-table/ScalingRole",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.118.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_dynamodb.Table",
+              "version": "2.118.0"
+            }
+          },
+          "AuthExit-APIGatewayHandlerLambdaExecutionRole": {
+            "id": "AuthExit-APIGatewayHandlerLambdaExecutionRole",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole",
+            "children": {
+              "ImportAuthExit-APIGatewayHandlerLambdaExecutionRole": {
+                "id": "ImportAuthExit-APIGatewayHandlerLambdaExecutionRole",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/ImportAuthExit-APIGatewayHandlerLambdaExecutionRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -420,7 +735,7 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                   "aws:cdk:cloudformation:props": {
@@ -436,7 +751,7 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "roleName": "AuthExit-qa-APIGatewayHandlerLambdaExecutionRole"
+                    "roleName": "AuthExit-APIGatewayHandlerLambdaExecutionRole"
                   }
                 },
                 "constructInfo": {
@@ -446,11 +761,11 @@
               },
               "DefaultPolicy": {
                 "id": "DefaultPolicy",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy/Resource",
+                    "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerLambdaExecutionRole/DefaultPolicy/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                       "aws:cdk:cloudformation:props": {
@@ -467,7 +782,7 @@
                               "Effect": "Allow",
                               "Resource": {
                                 "Fn::GetAtt": [
-                                  "AuthExitqabufferingQueue52C11475",
+                                  "AuthExitbufferingQueueCB41D069",
                                   "Arn"
                                 ]
                               }
@@ -475,10 +790,10 @@
                           ],
                           "Version": "2012-10-17"
                         },
-                        "policyName": "AuthExitqaAPIGatewayHandlerLambdaExecutionRoleDefaultPolicyBED5930F",
+                        "policyName": "AuthExitAPIGatewayHandlerLambdaExecutionRoleDefaultPolicy38F42BEB",
                         "roles": [
                           {
-                            "Ref": "AuthExitqaAPIGatewayHandlerLambdaExecutionRoleC4DF215F"
+                            "Ref": "AuthExitAPIGatewayHandlerLambdaExecutionRole2845A0F9"
                           }
                         ]
                       }
@@ -500,13 +815,13 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-APIGatewayHandlerInlinePolicy": {
-            "id": "AuthExit-qa-APIGatewayHandlerInlinePolicy",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerInlinePolicy",
+          "AuthExit-APIGatewayHandlerInlinePolicy": {
+            "id": "AuthExit-APIGatewayHandlerInlinePolicy",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerInlinePolicy",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-APIGatewayHandlerInlinePolicy/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-APIGatewayHandlerInlinePolicy/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                   "aws:cdk:cloudformation:props": {
@@ -548,6 +863,36 @@
                             {
                               "Fn::GetAtt": [
                                 "school4eventtable65D6645A",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
+                                "school5eventtableABC1D981",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
+                                "school6eventtable08A683AC",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
+                                "school7eventtableE342778E",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
+                                "school8eventtableB376ABDA",
+                                "Arn"
+                              ]
+                            },
+                            {
+                              "Fn::GetAtt": [
+                                "taleventtable6843E792",
                                 "Arn"
                               ]
                             },
@@ -619,6 +964,76 @@
                                 [
                                   {
                                     "Fn::GetAtt": [
+                                      "school5eventtableABC1D981",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "school6eventtable08A683AC",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "school7eventtableE342778E",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "school8eventtableB376ABDA",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
+                                      "taleventtable6843E792",
+                                      "Arn"
+                                    ]
+                                  },
+                                  "/index/*"
+                                ]
+                              ]
+                            },
+                            {
+                              "Fn::Join": [
+                                "",
+                                [
+                                  {
+                                    "Fn::GetAtt": [
                                       "testschooleventtable38290A03",
                                       "Arn"
                                     ]
@@ -658,10 +1073,10 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "policyName": "AuthExitqaAPIGatewayHandlerInlinePolicy5F7BBAB7",
+                    "policyName": "AuthExitAPIGatewayHandlerInlinePolicy3782EEE2",
                     "roles": [
                       {
-                        "Ref": "AuthExitqaAPIGatewayHandlerLambdaExecutionRoleC4DF215F"
+                        "Ref": "AuthExitAPIGatewayHandlerLambdaExecutionRole2845A0F9"
                       }
                     ]
                   }
@@ -677,13 +1092,13 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-ApiGwV2ToSqsRole": {
-            "id": "AuthExit-qa-ApiGwV2ToSqsRole",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwV2ToSqsRole",
+          "AuthExit-ApiGwV2ToSqsRole": {
+            "id": "AuthExit-ApiGwV2ToSqsRole",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsRole",
             "children": {
-              "ImportAuthExit-qa-ApiGwV2ToSqsRole": {
-                "id": "ImportAuthExit-qa-ApiGwV2ToSqsRole",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwV2ToSqsRole/ImportAuthExit-qa-ApiGwV2ToSqsRole",
+              "ImportAuthExit-ApiGwV2ToSqsRole": {
+                "id": "ImportAuthExit-ApiGwV2ToSqsRole",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsRole/ImportAuthExit-ApiGwV2ToSqsRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -691,7 +1106,7 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwV2ToSqsRole/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsRole/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                   "aws:cdk:cloudformation:props": {
@@ -710,7 +1125,7 @@
                     "managedPolicyArns": [
                       "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
                     ],
-                    "roleName": "AuthExit-qa-ApiGwV2ToSqsRole"
+                    "roleName": "AuthExit-ApiGwV2ToSqsRole"
                   }
                 },
                 "constructInfo": {
@@ -732,13 +1147,13 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-ApiGwV2ToSqsInlinePolicy": {
-            "id": "AuthExit-qa-ApiGwV2ToSqsInlinePolicy",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwV2ToSqsInlinePolicy",
+          "AuthExit-ApiGwV2ToSqsInlinePolicy": {
+            "id": "AuthExit-ApiGwV2ToSqsInlinePolicy",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsInlinePolicy",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwV2ToSqsInlinePolicy/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwV2ToSqsInlinePolicy/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                   "aws:cdk:cloudformation:props": {
@@ -754,7 +1169,7 @@
                           "Effect": "Allow",
                           "Resource": {
                             "Fn::GetAtt": [
-                              "AuthExitqabufferingQueue52C11475",
+                              "AuthExitbufferingQueueCB41D069",
                               "Arn"
                             ]
                           }
@@ -762,10 +1177,10 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "policyName": "AuthExitqaApiGwV2ToSqsInlinePolicy01C6CCBB",
+                    "policyName": "AuthExitApiGwV2ToSqsInlinePolicy8AB88B16",
                     "roles": [
                       {
-                        "Ref": "AuthExitqaApiGwV2ToSqsRole6C3DE1B6"
+                        "Ref": "AuthExitApiGwV2ToSqsRole0F41A033"
                       }
                     ]
                   }
@@ -781,17 +1196,17 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-apigatewayhandler": {
-            "id": "AuthExit-qa-apigatewayhandler",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler",
+          "AuthExit-apigatewayhandler": {
+            "id": "AuthExit-apigatewayhandler",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler",
             "children": {
               "Code": {
                 "id": "Code",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler/Code",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Code",
                 "children": {
                   "Stage": {
                     "id": "Stage",
-                    "path": "AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler/Code/Stage",
+                    "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Code/Stage",
                     "constructInfo": {
                       "fqn": "aws-cdk-lib.AssetStaging",
                       "version": "2.118.0"
@@ -799,7 +1214,7 @@
                   },
                   "AssetBucket": {
                     "id": "AssetBucket",
-                    "path": "AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler/Code/AssetBucket",
+                    "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Code/AssetBucket",
                     "constructInfo": {
                       "fqn": "aws-cdk-lib.aws_s3.BucketBase",
                       "version": "2.118.0"
@@ -813,12 +1228,12 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
                   "aws:cdk:cloudformation:props": {
                     "code": {
-                      "s3Bucket": "cdk-hnb659fds-assets-287190273383-ap-south-1",
+                      "s3Bucket": "cdk-hnb659fds-assets-287190273383-us-east-1",
                       "s3Key": "887f0fb11753b71dd51acbf671faf6990992c8a2dd69056a3e126caf8ff14d2b.zip"
                     },
                     "environment": {
@@ -830,11 +1245,11 @@
                         "JWT_SECRET": "your-default-secret"
                       }
                     },
-                    "functionName": "AuthExit-qa-apigatewayhandler",
+                    "functionName": "AuthExit-apigatewayhandler",
                     "handler": "apigatewayhandler.handler",
                     "role": {
                       "Fn::GetAtt": [
-                        "AuthExitqaAPIGatewayHandlerLambdaExecutionRoleC4DF215F",
+                        "AuthExitAPIGatewayHandlerLambdaExecutionRole2845A0F9",
                         "Arn"
                       ]
                     },
@@ -846,24 +1261,24 @@
                   "version": "2.118.0"
                 }
               },
-              "SqsEventSource:AuthExitAppInfraCdkStackAuthExitqabufferingQueue7272DB27": {
-                "id": "SqsEventSource:AuthExitAppInfraCdkStackAuthExitqabufferingQueue7272DB27",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitqabufferingQueue7272DB27",
+              "SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0": {
+                "id": "SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0",
                 "children": {
                   "Resource": {
                     "id": "Resource",
-                    "path": "AuthExitAppInfraCdkStack/AuthExit-qa-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitqabufferingQueue7272DB27/Resource",
+                    "path": "AuthExitAppInfraCdkStack/AuthExit-apigatewayhandler/SqsEventSource:AuthExitAppInfraCdkStackAuthExitbufferingQueue9AFF94D0/Resource",
                     "attributes": {
                       "aws:cdk:cloudformation:type": "AWS::Lambda::EventSourceMapping",
                       "aws:cdk:cloudformation:props": {
                         "eventSourceArn": {
                           "Fn::GetAtt": [
-                            "AuthExitqabufferingQueue52C11475",
+                            "AuthExitbufferingQueueCB41D069",
                             "Arn"
                           ]
                         },
                         "functionName": {
-                          "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                          "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                         }
                       }
                     },
@@ -884,13 +1299,13 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-ApiGwToLambdaRole": {
-            "id": "AuthExit-qa-ApiGwToLambdaRole",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwToLambdaRole",
+          "AuthExit-ApiGwToLambdaRole": {
+            "id": "AuthExit-ApiGwToLambdaRole",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaRole",
             "children": {
-              "ImportAuthExit-qa-ApiGwToLambdaRole": {
-                "id": "ImportAuthExit-qa-ApiGwToLambdaRole",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwToLambdaRole/ImportAuthExit-qa-ApiGwToLambdaRole",
+              "ImportAuthExit-ApiGwToLambdaRole": {
+                "id": "ImportAuthExit-ApiGwToLambdaRole",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaRole/ImportAuthExit-ApiGwToLambdaRole",
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.Resource",
                   "version": "2.118.0"
@@ -898,7 +1313,7 @@
               },
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwToLambdaRole/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaRole/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Role",
                   "aws:cdk:cloudformation:props": {
@@ -914,7 +1329,7 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "roleName": "AuthExit-qa-ApiGwToLambdaRole"
+                    "roleName": "AuthExit-ApiGwToLambdaRole"
                   }
                 },
                 "constructInfo": {
@@ -928,13 +1343,13 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-ApiGwToLambdaInlinePolicy": {
-            "id": "AuthExit-qa-ApiGwToLambdaInlinePolicy",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwToLambdaInlinePolicy",
+          "AuthExit-ApiGwToLambdaInlinePolicy": {
+            "id": "AuthExit-ApiGwToLambdaInlinePolicy",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaInlinePolicy",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "AuthExitAppInfraCdkStack/AuthExit-qa-ApiGwToLambdaInlinePolicy/Resource",
+                "path": "AuthExitAppInfraCdkStack/AuthExit-ApiGwToLambdaInlinePolicy/Resource",
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
                   "aws:cdk:cloudformation:props": {
@@ -948,7 +1363,7 @@
                           "Effect": "Allow",
                           "Resource": {
                             "Fn::GetAtt": [
-                              "AuthExitqaapigatewayhandler30BA7931",
+                              "AuthExitapigatewayhandler3EEE4E4C",
                               "Arn"
                             ]
                           }
@@ -964,10 +1379,10 @@
                       ],
                       "Version": "2012-10-17"
                     },
-                    "policyName": "AuthExitqaApiGwToLambdaInlinePolicyEFBEFF69",
+                    "policyName": "AuthExitApiGwToLambdaInlinePolicy2450818A",
                     "roles": [
                       {
-                        "Ref": "AuthExitqaApiGwToLambdaRoleA95F8B87"
+                        "Ref": "AuthExitApiGwToLambdaRole500A627D"
                       }
                     ]
                   }
@@ -983,9 +1398,9 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpToSqs-API": {
-            "id": "AuthExit-qa-HttpToSqs-API",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpToSqs-API",
+          "AuthExit-HttpToSqs-API": {
+            "id": "AuthExit-HttpToSqs-API",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpToSqs-API",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Api",
               "aws:cdk:cloudformation:props": {
@@ -1010,7 +1425,7 @@
                   ],
                   "maxAge": 3600
                 },
-                "name": "AuthExit-qa-function",
+                "name": "AuthExit-function",
                 "protocolType": "HTTP"
               }
             },
@@ -1019,23 +1434,23 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpToSqsStage": {
-            "id": "AuthExit-qa-HttpToSqsStage",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpToSqsStage",
+          "AuthExit-HttpToSqsStage": {
+            "id": "AuthExit-HttpToSqsStage",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpToSqsStage",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Stage",
               "aws:cdk:cloudformation:props": {
                 "accessLogSettings": {
                   "destinationArn": {
                     "Fn::GetAtt": [
-                      "AuthExitqaLoggroup604B8C13",
+                      "AuthExitLoggroupC7BD9745",
                       "Arn"
                     ]
                   },
                   "format": "{ \"requestId\":\"$context.requestId\", \"ip\": \"$context.identity.sourceIp\", \"requestTime\":\"$context.requestTime\", \"httpMethod\":\"$context.httpMethod\",\"routeKey\":\"$context.routeKey\", \"status\":\"$context.status\",\"protocol\":\"$context.protocol\", \"responseLength\":\"$context.responseLength\" }"
                 },
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "autoDeploy": true,
                 "stageName": "$default"
@@ -1046,18 +1461,18 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-httpApiIntegSqsSendMessage": {
-            "id": "AuthExit-qa-httpApiIntegSqsSendMessage",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-httpApiIntegSqsSendMessage",
+          "AuthExit-httpApiIntegSqsSendMessage": {
+            "id": "AuthExit-httpApiIntegSqsSendMessage",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-httpApiIntegSqsSendMessage",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Integration",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "credentialsArn": {
                   "Fn::GetAtt": [
-                    "AuthExitqaApiGwV2ToSqsRole6C3DE1B6",
+                    "AuthExitApiGwV2ToSqsRole0F41A033",
                     "Arn"
                   ]
                 },
@@ -1066,7 +1481,7 @@
                 "payloadFormatVersion": "1.0",
                 "requestParameters": {
                   "QueueUrl": {
-                    "Ref": "AuthExitqabufferingQueue52C11475"
+                    "Ref": "AuthExitbufferingQueueCB41D069"
                   },
                   "MessageBody": "$request.body"
                 }
@@ -1077,25 +1492,25 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-httpApiIntegInvokeLambda": {
-            "id": "AuthExit-qa-httpApiIntegInvokeLambda",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-httpApiIntegInvokeLambda",
+          "AuthExit-httpApiIntegInvokeLambda": {
+            "id": "AuthExit-httpApiIntegInvokeLambda",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-httpApiIntegInvokeLambda",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Integration",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "credentialsArn": {
                   "Fn::GetAtt": [
-                    "AuthExitqaApiGwToLambdaRoleA95F8B87",
+                    "AuthExitApiGwToLambdaRole500A627D",
                     "Arn"
                   ]
                 },
                 "integrationType": "AWS_PROXY",
                 "integrationUri": {
                   "Fn::GetAtt": [
-                    "AuthExitqaapigatewayhandler30BA7931",
+                    "AuthExitapigatewayhandler3EEE4E4C",
                     "Arn"
                   ]
                 },
@@ -1107,14 +1522,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRouteSqsSendMsg2": {
-            "id": "AuthExit-qa-HttpApiRouteSqsSendMsg2",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg2",
+          "AuthExit-HttpApiRouteSqsSendMsg2": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg2",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg2",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "GET /{orgCode}/itemsbytype/{id}",
                 "target": {
@@ -1123,7 +1538,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -1135,14 +1550,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRouteSqsSendMsg4": {
-            "id": "AuthExit-qa-HttpApiRouteSqsSendMsg4",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg4",
+          "AuthExit-HttpApiRouteSqsSendMsg4": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg4",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg4",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "GET /{orgCode}/items/{id}",
                 "target": {
@@ -1151,7 +1566,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -1163,14 +1578,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRouteSqsSendMsg5": {
-            "id": "AuthExit-qa-HttpApiRouteSqsSendMsg5",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg5",
+          "AuthExit-HttpApiRouteSqsSendMsg5": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg5",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg5",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "PUT /{orgCode}/items",
                 "target": {
@@ -1179,7 +1594,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegSqsSendMessage"
+                        "Ref": "AuthExithttpApiIntegSqsSendMessage"
                       }
                     ]
                   ]
@@ -1191,14 +1606,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRouteSqsSendMsg6": {
-            "id": "AuthExit-qa-HttpApiRouteSqsSendMsg6",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg6",
+          "AuthExit-HttpApiRouteSqsSendMsg6": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg6",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg6",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /{orgCode}/items",
                 "target": {
@@ -1207,7 +1622,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegSqsSendMessage"
+                        "Ref": "AuthExithttpApiIntegSqsSendMessage"
                       }
                     ]
                   ]
@@ -1219,14 +1634,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRouteSqsSendMsg3": {
-            "id": "AuthExit-qa-HttpApiRouteSqsSendMsg3",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRouteSqsSendMsg3",
+          "AuthExit-HttpApiRouteSqsSendMsg3": {
+            "id": "AuthExit-HttpApiRouteSqsSendMsg3",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRouteSqsSendMsg3",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "DELETE /{orgCode}/removeitem/{id}",
                 "target": {
@@ -1235,7 +1650,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -1247,14 +1662,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRoute7": {
-            "id": "AuthExit-qa-HttpApiRoute7",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute7",
+          "AuthExit-HttpApiRoute7": {
+            "id": "AuthExit-HttpApiRoute7",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute7",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /{orgCode}/getsecrets",
                 "target": {
@@ -1263,7 +1678,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -1275,14 +1690,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRoute10": {
-            "id": "AuthExit-qa-HttpApiRoute10",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute10",
+          "AuthExit-HttpApiRoute10": {
+            "id": "AuthExit-HttpApiRoute10",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute10",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /{orgCode}/items/filter2column",
                 "target": {
@@ -1291,7 +1706,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -1303,14 +1718,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRoute11": {
-            "id": "AuthExit-qa-HttpApiRoute11",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute11",
+          "AuthExit-HttpApiRoute11": {
+            "id": "AuthExit-HttpApiRoute11",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute11",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /{orgCode}/sendemail",
                 "target": {
@@ -1319,7 +1734,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -1331,14 +1746,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRoute12": {
-            "id": "AuthExit-qa-HttpApiRoute12",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute12",
+          "AuthExit-HttpApiRoute12": {
+            "id": "AuthExit-HttpApiRoute12",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute12",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /{orgCode}/sendpush",
                 "target": {
@@ -1347,7 +1762,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -1359,14 +1774,14 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiRoute13": {
-            "id": "AuthExit-qa-HttpApiRoute13",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiRoute13",
+          "AuthExit-HttpApiRoute13": {
+            "id": "AuthExit-HttpApiRoute13",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiRoute13",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::ApiGatewayV2::Route",
               "aws:cdk:cloudformation:props": {
                 "apiId": {
-                  "Ref": "AuthExitqaHttpToSqsAPI"
+                  "Ref": "AuthExitHttpToSqsAPI"
                 },
                 "routeKey": "POST /{orgCode}/registerdevice",
                 "target": {
@@ -1375,7 +1790,7 @@
                     [
                       "integrations/",
                       {
-                        "Ref": "AuthExitqahttpApiIntegInvokeLambda"
+                        "Ref": "AuthExithttpApiIntegInvokeLambda"
                       }
                     ]
                   ]
@@ -1403,7 +1818,7 @@
                         [
                           "/aws/lambda/",
                           {
-                            "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                            "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                           }
                         ]
                       ]
@@ -1422,24 +1837,24 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiLambdaPermission1": {
-            "id": "AuthExit-qa-HttpApiLambdaPermission1",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission1",
+          "AuthExit-HttpApiLambdaPermission1": {
+            "id": "AuthExit-HttpApiLambdaPermission1",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission1",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:ap-south-1:287190273383:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "AuthExitqaHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/{orgCode}/items/{id}"
                     ]
@@ -1452,24 +1867,24 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiLambdaPermission2": {
-            "id": "AuthExit-qa-HttpApiLambdaPermission2",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission2",
+          "AuthExit-HttpApiLambdaPermission2": {
+            "id": "AuthExit-HttpApiLambdaPermission2",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission2",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:ap-south-1:287190273383:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "AuthExitqaHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/{orgCode}/itemsbytype/{id}"
                     ]
@@ -1482,24 +1897,24 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiLambdaPermission4": {
-            "id": "AuthExit-qa-HttpApiLambdaPermission4",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission4",
+          "AuthExit-HttpApiLambdaPermission4": {
+            "id": "AuthExit-HttpApiLambdaPermission4",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission4",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:ap-south-1:287190273383:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "AuthExitqaHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/{orgCode}/getsecrets"
                     ]
@@ -1512,24 +1927,24 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiLambdaPermission7": {
-            "id": "AuthExit-qa-HttpApiLambdaPermission7",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission7",
+          "AuthExit-HttpApiLambdaPermission7": {
+            "id": "AuthExit-HttpApiLambdaPermission7",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission7",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:ap-south-1:287190273383:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "AuthExitqaHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/{orgCode}/removeitem/{id}"
                     ]
@@ -1542,24 +1957,24 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiLambdaPermission8": {
-            "id": "AuthExit-qa-HttpApiLambdaPermission8",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission8",
+          "AuthExit-HttpApiLambdaPermission8": {
+            "id": "AuthExit-HttpApiLambdaPermission8",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission8",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:ap-south-1:287190273383:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "AuthExitqaHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/{orgCode}/items/filter2column"
                     ]
@@ -1572,24 +1987,24 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiLambdaPermission9": {
-            "id": "AuthExit-qa-HttpApiLambdaPermission9",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission9",
+          "AuthExit-HttpApiLambdaPermission9": {
+            "id": "AuthExit-HttpApiLambdaPermission9",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission9",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:ap-south-1:287190273383:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "AuthExitqaHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/{orgCode}/sendemail"
                     ]
@@ -1602,24 +2017,24 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiLambdaPermission10": {
-            "id": "AuthExit-qa-HttpApiLambdaPermission10",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission10",
+          "AuthExit-HttpApiLambdaPermission10": {
+            "id": "AuthExit-HttpApiLambdaPermission10",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission10",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:ap-south-1:287190273383:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "AuthExitqaHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/{orgCode}/sendpush"
                     ]
@@ -1632,24 +2047,24 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiLambdaPermission11": {
-            "id": "AuthExit-qa-HttpApiLambdaPermission11",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiLambdaPermission11",
+          "AuthExit-HttpApiLambdaPermission11": {
+            "id": "AuthExit-HttpApiLambdaPermission11",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiLambdaPermission11",
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
               "aws:cdk:cloudformation:props": {
                 "action": "lambda:InvokeFunction",
                 "functionName": {
-                  "Ref": "AuthExitqaapigatewayhandler30BA7931"
+                  "Ref": "AuthExitapigatewayhandler3EEE4E4C"
                 },
                 "principal": "apigateway.amazonaws.com",
                 "sourceArn": {
                   "Fn::Join": [
                     "",
                     [
-                      "arn:aws:execute-api:ap-south-1:287190273383:",
+                      "arn:aws:execute-api:us-east-1:287190273383:",
                       {
-                        "Ref": "AuthExitqaHttpToSqsAPI"
+                        "Ref": "AuthExitHttpToSqsAPI"
                       },
                       "/*/*/{orgCode}/registerdevice"
                     ]
@@ -1662,9 +2077,9 @@
               "version": "2.118.0"
             }
           },
-          "AuthExit-qa-HttpApiEndpoint": {
-            "id": "AuthExit-qa-HttpApiEndpoint",
-            "path": "AuthExitAppInfraCdkStack/AuthExit-qa-HttpApiEndpoint",
+          "AuthExit-HttpApiEndpoint": {
+            "id": "AuthExit-HttpApiEndpoint",
+            "path": "AuthExitAppInfraCdkStack/AuthExit-HttpApiEndpoint",
             "constructInfo": {
               "fqn": "aws-cdk-lib.CfnOutput",
               "version": "2.118.0"
