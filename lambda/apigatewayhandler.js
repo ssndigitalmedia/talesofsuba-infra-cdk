@@ -149,6 +149,35 @@ exports.handler = async function (event, context) {
           );
           body = body.Items;
           break;
+        case "/{orgCode}/itemsbytypeanddate/{id}/{date}":
+          const typeQuery = event.pathParameters.id;
+          const dateQuery = event.pathParameters.date;
+          
+          try {
+            await verifyJwt("itemsbytypeanddate");
+          } catch (err) {
+            statusCode = 401;
+            body = { error: err.message };
+            break;
+          }
+
+          body = await dynamo.send(
+            new QueryCommand({
+              TableName: tableName,
+              IndexName: "type-date-index",
+              KeyConditionExpression: "#type = :type AND #date = :date",
+              ExpressionAttributeNames: {
+                "#type": "type",
+                "#date": "date",
+              },
+              ExpressionAttributeValues: {
+                ":type": typeQuery,
+                ":date": dateQuery,
+              },
+            }),
+          );
+          body = body.Items;
+          break;
 
         case "/{orgCode}/items/{id}":
           console.log("Incoming Get request:", event.pathParameters.id);

@@ -76,6 +76,18 @@ export class AuthExitAppInfraCdkStack extends Stack {
         },
         projectionType: dynamodb.ProjectionType.ALL,
       });
+      table.addGlobalSecondaryIndex({
+        indexName: "type-date-index",
+        partitionKey: {
+          name: "type",
+          type: dynamodb.AttributeType.STRING,
+        },
+        sortKey: {
+          name: "date",
+          type: dynamodb.AttributeType.STRING,
+        },
+        projectionType: dynamodb.ProjectionType.ALL,
+      });
       tables[school] = table;
     }
 
@@ -144,7 +156,7 @@ export class AuthExitAppInfraCdkStack extends Stack {
 
     //Lambda - apigatewayhandlerFunction
     const ApiGatewayHandlerFunction = new lambda.Function(this, `${project}apigatewayhandler`, {
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       code: lambda.Code.fromAsset("lambda"),
       handler: "apigatewayhandler.handler",
       functionName: `${project}apigatewayhandler`,
@@ -288,6 +300,11 @@ export class AuthExitAppInfraCdkStack extends Stack {
       routeKey: "POST /{orgCode}/registerdevice",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
+    const HttpApiRoute14 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute14`, {
+      apiId: api.ref,
+      routeKey: "GET /{orgCode}/itemsbytypeanddate/{id}/{date}",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
 
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
@@ -350,6 +367,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/registerdevice`,
+    });
+    const HttpApiLambdaPermission12 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission12`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/itemsbytypeanddate/{id}/{date}`,
     });
 
     ////..................Outputs................/////////
