@@ -9,13 +9,13 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as eventsources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as cdk from "aws-cdk-lib/core";
 
-export class DigitalPassAppInfraCdkStack extends Stack {
+export class RecipeAIeAppInfraCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-    var project = "DigitalPass-";
-    const tableNames = ["DigitalPass-"];
+    var project = "RecipeAIApp-";
+    const tableNames = ["RecipeAIApp-"];
     // Could be per environment
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://192.168.1.160:3000/", "https://devpasskit.ssndigitalmedia.com", "https://passkit.ssndigitalmedia.com"];
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://192.168.1.160:3000/", "http://192.168.1.160:3001/", "https://recipeai.eshope.com", "https://qarecipeai.eshope.com"];
     ////..................SQS QUEUES................./////////
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
