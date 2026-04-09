@@ -50,19 +50,19 @@ def handler(event, context):
             body = json.loads(event.get('body', '{}'))
         else:
             body = event if isinstance(event, dict) else {}
-            
+
         ingredients = body.get('ingredients', [])
         cuisine = body.get('cuisine', 'General')
+        action = body.get('action', 'full') # full, text_only, image_and_save, analyze_food
+        preference = body.get('preference', 'No Preference')
         
-        if not ingredients:
+        # Ingredients are only required for recipe actions
+        if action in ['full', 'text_only', 'image_and_save'] and not ingredients:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'error': 'Please provide ingredients'})
             }
-
-        action = body.get('action', 'full') # full, text_only, image_and_save
-        preference = body.get('preference', 'No Preference')
         
         if preference == 'Veg':
             non_veg_keywords = ['chicken', 'beef', 'pork', 'fish', 'prawn', 'shrimp', 'meat', 'egg', 'lamb', 'mutton', 'crab', 'lobster', 'salmon', 'tuna', 'bacon', 'sausage', 'turkey', 'duck', 'seafood']
@@ -227,22 +227,22 @@ Provide a brief description of the dish below that."""
             
     except urllib.error.HTTPError as e:
         error_msg = e.read().decode('utf-8')
-        print(f"HTTPError: {e.code} - {error_msg}")
+        print(f"Gemini API HTTP Error: {e.code} - {error_msg}")
+        try:
+            error_json = json.loads(error_msg)
+            if 'error' in error_json:
+                error_msg = error_json['error'].get('message', error_msg)
+        except:
+            pass
         return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json', 
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({'error': f"HTTP Error {e.code}: {e.reason} - {error_msg}"})
+            'statusCode': e.code,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f"Gemini API Error: {error_msg}"})
         }
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Lambda Exception: {e}")
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json', 
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({'error': str(e)})
         }
