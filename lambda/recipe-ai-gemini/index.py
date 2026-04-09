@@ -10,19 +10,18 @@ s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 
 S3_IMAGE_PREFIX = "pocketapps/recipe-ai/generated-images/"
-GEMINI_TEXT_MODEL = "gemini-3.1-pro-preview"
-GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image-preview"
+GEMINI_TEXT_MODEL = "gemini-1.5-pro"
+GEMINI_IMAGE_MODEL = "gemini-1.5-flash" 
+GEMINI_VISION_MODEL = "gemini-1.5-flash" # Used for image analysis
 
-def generate_gemini_content(api_key, model_name, prompt):
+def generate_gemini_content(api_key, model_name, contents):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
     headers = {
         "Content-Type": "application/json",
         "x-goog-api-key": api_key
     }
     data = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }]
+        "contents": contents
     }
     req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers)
     
@@ -83,7 +82,8 @@ def handler(event, context):
         if action == 'text_only':
             # Generate Recipe Text ONLY
             recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
-            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, recipe_prompt)
+            contents = [{"parts": [{"text": recipe_prompt}]}]
+            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents)
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -96,7 +96,8 @@ def handler(event, context):
             title = body.get('recipe_name', cuisine + " Dish")
             
             image_prompt = f"Create a picture of {title} served in a plate, top view"
-            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, image_prompt)
+            contents = [{"parts": [{"text": image_prompt}]}]
+            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, contents)
             image_data = base64.b64decode(image_b64)
 
             bucket_name = os.environ.get('BUCKET_NAME')
@@ -137,12 +138,14 @@ def handler(event, context):
         elif action == 'full':
             # Generate Recipe Text
             recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
-            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, recipe_prompt)
+            contents = [{"parts": [{"text": recipe_prompt}]}]
+            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents)
 
             # Generate Image and Save
             title = body.get('recipe_name', cuisine + " Dish")
             image_prompt = f"Create a picture of {title} served in a plate, top view"
-            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, image_prompt)
+            contents = [{"parts": [{"text": image_prompt}]}]
+            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, contents)
             image_data = base64.b64decode(image_b64)
 
             bucket_name = os.environ.get('BUCKET_NAME')
@@ -178,6 +181,48 @@ def handler(event, context):
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'id': recipe_id, 'recipe': recipe_text, 'image_base64': image_b64, 'image_url': image_url})
+            }
+
+        elif action == 'analyze_food':
+            # Food Image Analysis (Vision)
+            image_b64 = body.get('image_data', '')
+            if not image_b64:
+                raise Exception("Missing image_data for analyze_food action")
+            
+            # Remove header if present (e.g. data:image/jpeg;base64,...)
+            if "," in image_b64:
+                image_b64 = image_b64.split(",")[1]
+
+            prompt = """Analyze this food image and provide nutritional information. 
+If the image does not contain any food or is not related to food, simply respond with: "This is not a food image."
+
+If it is food, format your response exactly like this:
+**Food Name:** [name of the food]
+**Calories:** [number] calories
+**Carbohydrates:** [number] grams
+**Protein:** [number] grams
+**Fat:** [number] grams
+
+Provide a brief description of the dish below that."""
+            
+            contents = [{
+                "parts": [
+                    {
+                        "inline_data": {
+                            "mime_type": "image/jpeg",
+                            "data": image_b64
+                        }
+                    },
+                    {"text": prompt}
+                ]
+            }]
+            
+            _, analysis_text = generate_gemini_content(api_key, GEMINI_VISION_MODEL, contents)
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'caption': analysis_text})
             }
             
     except urllib.error.HTTPError as e:
