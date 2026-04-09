@@ -75,6 +75,7 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
       });
       tables[school] = table;
     }
+
     ////..................Roles................/////////
 
     const APIGatewayHandlerLambdaExecutionRole = new iam.Role(this, `${project}APIGatewayHandlerLambdaExecutionRole`, {
@@ -142,6 +143,7 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
         // add more if you onboard more schools
       },
     });
+
 
     const ApiGwToLambdaRole = new iam.Role(this, `${project}ApiGwToLambdaRole`, {
       assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
