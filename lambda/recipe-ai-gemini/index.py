@@ -10,7 +10,8 @@ s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 
 S3_IMAGE_PREFIX = "pocketapps/recipe-ai/generated-images/"
-
+GEMINI_TEXT_MODEL = "gemini-3.1-pro-preview"
+GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image-preview"
 
 def generate_gemini_content(api_key, model_name, prompt):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
@@ -66,7 +67,7 @@ def handler(event, context):
         if action == 'text_only':
             # Generate Recipe Text ONLY
             recipe_prompt = f"Create a {cuisine} recipe using: {', '.join(ingredients)}. Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
-            _, recipe_text = generate_gemini_content(api_key, 'gemini-3.1-pro-preview', recipe_prompt)
+            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, recipe_prompt)
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -78,8 +79,8 @@ def handler(event, context):
             recipe_text = body.get('recipe_text', '')
             title = body.get('recipe_name', cuisine + " Dish")
             
-            image_prompt = f"Create a picture of {title} served in a plate"
-            mime_type, image_b64 = generate_gemini_content(api_key, 'gemini-3.1-flash-image-preview', image_prompt)
+            image_prompt = f"Create a picture of {title} served in a plate, top view"
+            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, image_prompt)
             image_data = base64.b64decode(image_b64)
 
             bucket_name = os.environ.get('BUCKET_NAME')
@@ -120,12 +121,12 @@ def handler(event, context):
         elif action == 'full':
             # Generate Recipe Text
             recipe_prompt = f"Create a {cuisine} recipe using: {', '.join(ingredients)}. Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
-            _, recipe_text = generate_gemini_content(api_key, 'gemini-3.1-pro-preview', recipe_prompt)
+            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, recipe_prompt)
 
             # Generate Image and Save
             title = body.get('recipe_name', cuisine + " Dish")
-            image_prompt = f"Create a picture of {title} served in a plate"
-            mime_type, image_b64 = generate_gemini_content(api_key, 'gemini-3.1-flash-image-preview', image_prompt)
+            image_prompt = f"Create a picture of {title} served in a plate, top view"
+            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, image_prompt)
             image_data = base64.b64decode(image_b64)
 
             bucket_name = os.environ.get('BUCKET_NAME')
