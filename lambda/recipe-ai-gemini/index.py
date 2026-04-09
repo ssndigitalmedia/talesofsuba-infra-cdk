@@ -63,10 +63,26 @@ def handler(event, context):
             }
 
         action = body.get('action', 'full') # full, text_only, image_and_save
+        preference = body.get('preference', 'No Preference')
+        
+        if preference == 'Veg':
+            non_veg_keywords = ['chicken', 'beef', 'pork', 'fish', 'prawn', 'shrimp', 'meat', 'egg', 'lamb', 'mutton', 'crab', 'lobster', 'salmon', 'tuna', 'bacon', 'sausage', 'turkey', 'duck', 'seafood']
+            ings_lower = str(ingredients).lower()
+            found = [kw for kw in non_veg_keywords if kw in ings_lower]
+            if found:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': f"You selected Veg preference, but provided non-veg ingredients."})
+                }
+
+        diet_instruction = f"This must strictly be a {preference} recipe. " if preference and preference != 'No Preference' else ""
+
+        ings_str = ingredients if isinstance(ingredients, str) else ', '.join(ingredients)
 
         if action == 'text_only':
             # Generate Recipe Text ONLY
-            recipe_prompt = f"Create a {cuisine} recipe using: {', '.join(ingredients)}. Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+            recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
             _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, recipe_prompt)
             return {
                 'statusCode': 200,
@@ -120,7 +136,7 @@ def handler(event, context):
 
         elif action == 'full':
             # Generate Recipe Text
-            recipe_prompt = f"Create a {cuisine} recipe using: {', '.join(ingredients)}. Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+            recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
             _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, recipe_prompt)
 
             # Generate Image and Save
