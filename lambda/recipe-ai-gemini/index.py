@@ -10,9 +10,9 @@ s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 
 S3_IMAGE_PREFIX = "pocketapps/recipe-ai/generated-images/"
-GEMINI_TEXT_MODEL = "gemini-1.5-pro"
-GEMINI_IMAGE_MODEL = "gemini-1.5-flash" 
-GEMINI_VISION_MODEL = "gemini-1.5-flash" # Used for image analysis
+GEMINI_TEXT_MODEL = "gemini-3.1-pro-preview"
+GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image-preview" 
+GEMINI_VISION_MODEL = "gemini-3.1-flash-image-preview" # Used for image analysis
 
 def generate_gemini_content(api_key, model_name, contents):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
