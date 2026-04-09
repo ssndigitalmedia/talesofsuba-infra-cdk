@@ -124,7 +124,7 @@ def handler(event, context):
 
             # Generate Image and Save
             title = body.get('recipe_name', cuisine + " Dish")
-            image_prompt = f"Create a picture of {title} in a fancy restaurant with a Gemini theme"
+            image_prompt = f"Create a picture of {title} served in a plate"
             mime_type, image_b64 = generate_gemini_content(api_key, 'gemini-3.1-flash-image-preview', image_prompt)
             image_data = base64.b64decode(image_b64)
 
