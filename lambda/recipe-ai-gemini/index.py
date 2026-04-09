@@ -13,8 +13,11 @@ S3_IMAGE_PREFIX = "pocketapps/recipe-ai/generated-images/"
 
 
 def generate_gemini_content(api_key, model_name, prompt):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-    headers = {"Content-Type": "application/json"}
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key
+    }
     data = {
         "contents": [{
             "parts": [{"text": prompt}]
@@ -38,9 +41,9 @@ def generate_gemini_content(api_key, model_name, prompt):
 
 def handler(event, context):
     try:
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            raise Exception("GEMINI_API_KEY environment variable is missing")
+        api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+        if not api_key or api_key == "REPLACE_WITH_YOUR_KEY":
+            raise Exception("GEMINI_API_KEY environment variable is missing or invalid")
 
         # Parse Input depending on APIGW format
         if 'body' in event and isinstance(event['body'], str):
@@ -60,7 +63,7 @@ def handler(event, context):
 
         # Generate Recipe Text using REST API
         recipe_prompt = f"Create a {cuisine} recipe using: {', '.join(ingredients)}. Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
-        _, recipe_text = generate_gemini_content(api_key, 'gemini-1.5-flash', recipe_prompt)
+        _, recipe_text = generate_gemini_content(api_key, 'gemini-1.5-flash-latest', recipe_prompt)
 
         # Extract title or default to generic cuisine
         title = body.get('recipe_name')
@@ -132,6 +135,17 @@ def handler(event, context):
             })
         }
 
+    except urllib.error.HTTPError as e:
+        error_msg = e.read().decode('utf-8')
+        print(f"HTTPError: {e.code} - {error_msg}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json', 
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': f"HTTP Error {e.code}: {e.reason} - {error_msg}"})
+        }
     except Exception as e:
         print(f"Error: {e}")
         return {
