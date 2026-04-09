@@ -8,6 +8,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as eventsources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as cdk from "aws-cdk-lib/core";
+import * as s3 from "aws-cdk-lib/aws-s3";
 
 export class RecipeAIeAppInfraCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -15,7 +16,7 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
     var project = "RecipeAIApp-";
     const tableNames = ["RecipeAIApp-"];
     // Could be per environment
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://192.168.1.160:3000/", "http://192.168.1.160:3001/", "https://recipeai.eshope.com", "https://qarecipeai.eshope.com"];
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://192.168.1.160:3000", "http://192.168.1.160:3001", "https://recipeai.eshope.com", "https://qarecipeai.eshope.com"];
     ////..................SQS QUEUES................./////////
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
@@ -75,6 +76,10 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
       });
       tables[school] = table;
     }
+
+    ////..................S3 Buckets................/////////
+    const bucketName = process.env.RECIPE_BUCKET_NAME || "ssndigitalmedia";
+    const recipeBucket = s3.Bucket.fromBucketName(this, `${project}RecipeImagesBucket`, bucketName);
 
     ////..................Roles................/////////
 
@@ -144,6 +149,44 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
       },
     });
 
+    const RecipeAILambdaExecutionRole = new iam.Role(this, `${project}RecipeAILambdaExecutionRole`, {
+      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+    });
+
+    RecipeAILambdaExecutionRole.attachInlinePolicy(
+      new iam.Policy(this, `${project}RecipeAIPolicy`, {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:GetItem"],
+            resources: allTableArns,
+          }),
+          new iam.PolicyStatement({
+            actions: ["s3:PutObject", "s3:PutObjectAcl"],
+            resources: [recipeBucket.bucketArn + "/*"],
+          }),
+          new iam.PolicyStatement({
+            actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+            resources: ["*"],
+          }),
+        ],
+      }),
+    );
+
+    const RecipeAIGeminiFunction = new lambda.Function(this, `${project}RecipeAIGeminiFunction`, {
+      runtime: lambda.Runtime.PYTHON_3_11,
+      code: lambda.Code.fromAsset("lambda/recipe-ai-gemini"),
+      handler: "index.handler",
+      functionName: `${project}recipe-ai-gemini`,
+      role: RecipeAILambdaExecutionRole,
+      timeout: Duration.seconds(30), // Gemini models can take some time
+      memorySize: 256,
+      environment: {
+        TABLE_NAME: tables[tableNames[0]].tableName,
+        BUCKET_NAME: recipeBucket.bucketName,
+        GEMINI_API_KEY: process.env.GEMINI_API_KEY || "REPLACE_WITH_YOUR_KEY",
+      },
+    });
+
 
     const ApiGwToLambdaRole = new iam.Role(this, `${project}ApiGwToLambdaRole`, {
       assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
@@ -166,13 +209,24 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
       }),
     );
 
+    ApiGwToLambdaRole.attachInlinePolicy(
+      new iam.Policy(this, `${project}ApiGwToRecipeAILambdaInlinePolicy`, {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["lambda:InvokeFunction"],
+            resources: [RecipeAIGeminiFunction.functionArn],
+          }),
+        ],
+      })
+    );
+
     ////..................api Gateway................/////////
 
     const api = new apigwv2.CfnApi(this, `${project}HttpToSqs-API`, {
       corsConfiguration: {
         allowCredentials: false,
         allowHeaders: ["*"],
-        allowMethods: ["GET", "POST", "PUT", "DELETE"],
+        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allowOrigins: corsOrigins,
         maxAge: 3600,
       },
@@ -213,6 +267,14 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
       payloadFormatVersion: "1.0",
       credentialsArn: ApiGwToLambdaRole.roleArn, // Use the existing role or create a new one
       integrationUri: ApiGatewayHandlerFunction.functionArn,
+    });
+
+    const httpApiIntegInvokeRecipeAILambda = new apigwv2.CfnIntegration(this, `${project}httpApiIntegInvokeRecipeAILambda`, {
+      apiId: api.ref,
+      integrationType: "AWS_PROXY",
+      payloadFormatVersion: "1.0",
+      credentialsArn: ApiGwToLambdaRole.roleArn, 
+      integrationUri: RecipeAIGeminiFunction.functionArn,
     });
 
     const HttpApiRoute2 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg2`, {
@@ -263,6 +325,12 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
       apiId: api.ref,
       routeKey: "GET /itemsbyemail/{email}",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
+    const HttpApiRouteRecipeAI = new apigwv2.CfnRoute(this, `${project}HttpApiRouteRecipeAI`, {
+      apiId: api.ref,
+      routeKey: "POST /recipe-ai-gemini",
+      target: `integrations/${httpApiIntegInvokeRecipeAILambda.ref}`,
     });
 
     // Associate the Lambda function with a CloudWatch Logs log group
@@ -319,6 +387,14 @@ export class RecipeAIeAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/itemsbyemail/{email}`,
+    });
+
+    ////..................Outputs................/////////
+    const HttpApiRecipeAIPermission = new lambda.CfnPermission(this, `${project}HttpApiRecipeAIPermission`, {
+      action: "lambda:InvokeFunction",
+      functionName: RecipeAIGeminiFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/recipe-ai-gemini`,
     });
 
     ////..................Outputs................/////////

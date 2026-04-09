@@ -9,6 +9,9 @@ import urllib.request
 s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 
+S3_IMAGE_PREFIX = "pocketapps/recipe-ai/generated-images/"
+
+
 def generate_gemini_content(api_key, model_name, prompt):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
     headers = {"Content-Type": "application/json"}
@@ -84,7 +87,7 @@ def handler(event, context):
         timestamp = datetime.datetime.utcnow().isoformat()
         
         if bucket_name:
-            file_key = f"recipes/{recipe_id}.png"
+            file_key = f"{S3_IMAGE_PREFIX}{recipe_id}.png"
             s3_client.put_object(
                 Bucket=bucket_name,
                 Key=file_key,
