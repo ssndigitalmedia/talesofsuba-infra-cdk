@@ -89,9 +89,9 @@ def handler(event, context):
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'body': json.dumps({'error': 'Please provide a recipe name'})
                     }
-                recipe_prompt = f"Create a {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+                recipe_prompt = f"Create a short and easy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and brief, quick step-by-step instructions. Quote Recipe name with in \"~\"."
             else:
-                recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+                recipe_prompt = f"Create a short and easy {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and brief, quick step-by-step instructions. Quote Recipe name with in \"~\"."
             
             contents = [{"parts": [{"text": recipe_prompt}]}]
             _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents)
@@ -156,9 +156,9 @@ def handler(event, context):
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'body': json.dumps({'error': 'Please provide a recipe name'})
                     }
-                recipe_prompt = f"Create a {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+                recipe_prompt = f"Create a short and easy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and brief, quick step-by-step instructions. Quote Recipe name with in \"~\"."
             else:
-                recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+                recipe_prompt = f"Create a short and easy {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and brief, quick step-by-step instructions. Quote Recipe name with in \"~\"."
             
             contents = [{"parts": [{"text": recipe_prompt}]}]
             _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents)
