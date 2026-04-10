@@ -79,9 +79,20 @@ def handler(event, context):
 
         ings_str = ingredients if isinstance(ingredients, str) else ', '.join(ingredients)
 
-        if action == 'text_only':
+        if action == 'text_only' or action == 'recipe_by_name_text':
             # Generate Recipe Text ONLY
-            recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+            if action == 'recipe_by_name_text':
+                recipe_name_input = body.get('recipe_name', '')
+                if not recipe_name_input:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Please provide a recipe name'})
+                    }
+                recipe_prompt = f"Create a {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+            else:
+                recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+            
             contents = [{"parts": [{"text": recipe_prompt}]}]
             _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents)
             return {
@@ -135,9 +146,20 @@ def handler(event, context):
                 'body': json.dumps({'id': recipe_id, 'image_base64': image_b64, 'image_url': image_url})
             }
 
-        elif action == 'full':
+        elif action == 'full' or action == 'recipe_by_name':
             # Generate Recipe Text
-            recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+            if action == 'recipe_by_name':
+                recipe_name_input = body.get('recipe_name', '')
+                if not recipe_name_input:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Please provide a recipe name'})
+                    }
+                recipe_prompt = f"Create a {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+            else:
+                recipe_prompt = f"Create a {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and Step-by-step instructions. Quote Recipe name with in \"~\"."
+            
             contents = [{"parts": [{"text": recipe_prompt}]}]
             _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents)
 
@@ -169,7 +191,7 @@ def handler(event, context):
                         'type': 'recipe-ai',
                         'email': body.get('email', 'anonymous'),
                         'cuisine': cuisine,
-                        'ingredients': ingredients,
+                        'ingredients': ingredients if action != 'recipe_by_name' else f"Search: {recipe_name_input}",
                         'recipeText': recipe_text,
                         'image': image_url,
                         'date': timestamp,
