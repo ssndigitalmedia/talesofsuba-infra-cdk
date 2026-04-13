@@ -90,12 +90,12 @@ def handler(event, context):
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'body': json.dumps({'error': 'Please provide a recipe name'})
                     }
-                recipe_prompt = f"Create a healthy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include Title, Ingredients, and comprehensive, detailed, and complete step-by-step instructions (at least 5-8 steps). Wrap Title in '~' (e.g., ~Title~)."
+                recipe_prompt = f"Create a healthy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include Title, Ingredients, and a full numbered list of concise (1-2 lines each) step-by-step instructions. Wrap Title in '~' (e.g., ~Title~)."
             else:
-                recipe_prompt = f"Create a healthy {cuisine} recipe using: {ings_str}. {diet_instruction}Include Title, Ingredients, and comprehensive, detailed, and complete step-by-step instructions (at least 5-8 steps). Wrap Title in '~' (e.g., ~Title~)."
+                recipe_prompt = f"Create a healthy {cuisine} recipe using: {ings_str}. {diet_instruction}Include Title, Ingredients, and a full numbered list of concise (1-2 lines each) step-by-step instructions. Wrap Title in '~' (e.g., ~Title~)."
             
             contents = [{"parts": [{"text": recipe_prompt}]}]
-            text_config = {"maxOutputTokens": 2048, "temperature": 0.5}
+            text_config = {"maxOutputTokens": 4096, "temperature": 0.5}
             _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents, text_config)
             return {
                 'statusCode': 200,
@@ -159,12 +159,12 @@ def handler(event, context):
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'body': json.dumps({'error': 'Please provide a recipe name'})
                     }
-                recipe_prompt = f"Create a healthy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include Title, Ingredients, and comprehensive, detailed, and complete step-by-step instructions (at least 5-8 steps). Wrap Title in '~' (e.g., ~Title~)."
+                recipe_prompt = f"Create a healthy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include Title, Ingredients, and a full numbered list of concise (1-2 lines each) step-by-step instructions. Wrap Title in '~' (e.g., ~Title~)."
             else:
-                recipe_prompt = f"Create a healthy {cuisine} recipe using: {ings_str}. {diet_instruction}Include Title, Ingredients, and comprehensive, detailed, and complete step-by-step instructions (at least 5-8 steps). Wrap Title in '~' (e.g., ~Title~)."
+                recipe_prompt = f"Create a healthy {cuisine} recipe using: {ings_str}. {diet_instruction}Include Title, Ingredients, and a full numbered list of concise (1-2 lines each) step-by-step instructions. Wrap Title in '~' (e.g., ~Title~)."
             
             contents = [{"parts": [{"text": recipe_prompt}]}]
-            text_config = {"maxOutputTokens": 2048, "temperature": 0.5}
+            text_config = {"maxOutputTokens": 4096, "temperature": 0.5}
             _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents, text_config)
 
             # Generate Image and Save
