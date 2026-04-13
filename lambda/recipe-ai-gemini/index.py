@@ -14,15 +14,16 @@ GEMINI_TEXT_MODEL = "gemini-3.1-pro-preview"
 GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image-preview" 
 GEMINI_VISION_MODEL = "gemini-3.1-flash-image-preview" # Used for image analysis
 
-def generate_gemini_content(api_key, model_name, contents):
+def generate_gemini_content(api_key, model_name, contents, generation_config=None):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
     headers = {
         "Content-Type": "application/json",
         "x-goog-api-key": api_key
     }
-    data = {
-        "contents": contents
-    }
+    data = {"contents": contents}
+    if generation_config:
+        data["generationConfig"] = generation_config
+        
     req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers)
     
     with urllib.request.urlopen(req) as response:
@@ -89,12 +90,13 @@ def handler(event, context):
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'body': json.dumps({'error': 'Please provide a recipe name'})
                     }
-                recipe_prompt = f"Create a short and easy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and brief, quick step-by-step instructions. Quote Recipe name with in \"~\"."
+                recipe_prompt = f"Create a healthy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and detailed step-by-step instructions. Wrap Title in '~' (e.g., ~Title~)."
             else:
-                recipe_prompt = f"Create a short and easy {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and brief, quick step-by-step instructions. Quote Recipe name with in \"~\"."
+                recipe_prompt = f"Create a healthy {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and detailed step-by-step instructions. Wrap Title in '~' (e.g., ~Title~)."
             
             contents = [{"parts": [{"text": recipe_prompt}]}]
-            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents)
+            text_config = {"maxOutputTokens": 800, "temperature": 0.7}
+            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents, text_config)
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -106,9 +108,10 @@ def handler(event, context):
             recipe_text = body.get('recipe_text', '')
             title = body.get('recipe_name', cuisine + " Dish")
             
-            image_prompt = f"Create a picture of {title} served in a plate, top view"
+            image_prompt = f"A photo of {title} on a plate, top view, high quality, 512x512."
             contents = [{"parts": [{"text": image_prompt}]}]
-            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, contents)
+            image_config = {"temperature": 0.4, "topK": 1}
+            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, contents, image_config)
             image_data = base64.b64decode(image_b64)
 
             bucket_name = os.environ.get('BUCKET_NAME')
@@ -119,8 +122,8 @@ def handler(event, context):
             timestamp = datetime.datetime.utcnow().isoformat()
             
             if bucket_name:
-                file_key = f"{S3_IMAGE_PREFIX}{recipe_id}.png"
-                s3_client.put_object(Bucket=bucket_name, Key=file_key, Body=image_data, ContentType='image/png', ACL='public-read')
+                file_key = f"{S3_IMAGE_PREFIX}{recipe_id}.jpg"
+                s3_client.put_object(Bucket=bucket_name, Key=file_key, Body=image_data, ContentType='image/jpeg', ACL='public-read')
                 region = os.environ.get('AWS_REGION', 'us-east-1')
                 image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}" if region == 'us-east-1' else f"https://{bucket_name}.s3.{region}.amazonaws.com/{file_key}"
                     
@@ -156,18 +159,20 @@ def handler(event, context):
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'body': json.dumps({'error': 'Please provide a recipe name'})
                     }
-                recipe_prompt = f"Create a short and easy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include a Title, Ingredients list, and brief, quick step-by-step instructions. Quote Recipe name with in \"~\"."
+                recipe_prompt = f"Create a healthy {cuisine} recipe for '{recipe_name_input}'. {diet_instruction}Include Title, Ingredients, and detailed step-by-step instructions. Wrap Title in '~' (e.g., ~Title~)."
             else:
-                recipe_prompt = f"Create a short and easy {cuisine} recipe using: {ings_str}. {diet_instruction}Include a Title, Ingredients list, and brief, quick step-by-step instructions. Quote Recipe name with in \"~\"."
+                recipe_prompt = f"Create a healthy {cuisine} recipe using: {ings_str}. {diet_instruction}Include Title, Ingredients, and detailed step-by-step instructions. Wrap Title in '~' (e.g., ~Title~)."
             
             contents = [{"parts": [{"text": recipe_prompt}]}]
-            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents)
+            text_config = {"maxOutputTokens": 800, "temperature": 0.7}
+            _, recipe_text = generate_gemini_content(api_key, GEMINI_TEXT_MODEL, contents, text_config)
 
             # Generate Image and Save
             title = body.get('recipe_name', cuisine + " Dish")
-            image_prompt = f"Create a picture of {title} served in a plate, top view"
+            image_prompt = f"A photo of {title} on a plate, top view, 512x512."
             contents = [{"parts": [{"text": image_prompt}]}]
-            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, contents)
+            image_config = {"temperature": 0.4, "topK": 1}
+            mime_type, image_b64 = generate_gemini_content(api_key, GEMINI_IMAGE_MODEL, contents, image_config)
             image_data = base64.b64decode(image_b64)
 
             bucket_name = os.environ.get('BUCKET_NAME')
@@ -178,8 +183,8 @@ def handler(event, context):
             timestamp = datetime.datetime.utcnow().isoformat()
             
             if bucket_name:
-                file_key = f"{S3_IMAGE_PREFIX}{recipe_id}.png"
-                s3_client.put_object(Bucket=bucket_name, Key=file_key, Body=image_data, ContentType='image/png', ACL='public-read')
+                file_key = f"{S3_IMAGE_PREFIX}{recipe_id}.jpg"
+                s3_client.put_object(Bucket=bucket_name, Key=file_key, Body=image_data, ContentType='image/jpeg', ACL='public-read')
                 region = os.environ.get('AWS_REGION', 'us-east-1')
                 image_url = f"https://{bucket_name}.s3.amazonaws.com/{file_key}" if region == 'us-east-1' else f"https://{bucket_name}.s3.{region}.amazonaws.com/{file_key}"
                     
