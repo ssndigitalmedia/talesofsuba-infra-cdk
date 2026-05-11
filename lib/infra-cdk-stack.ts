@@ -375,6 +375,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
+    const HttpApiRoute16 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute16`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/sendpushUser",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
       logGroupName: "/aws/lambda/" + ApiGatewayHandlerFunction.functionName,
