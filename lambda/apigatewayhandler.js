@@ -3,6 +3,8 @@ const { DynamoDBDocumentClient, ScanCommand, PutCommand, UpdateCommand, GetComma
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client-secrets-manager");
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const s3Client = new S3Client({ region: process.env.S3_REGION || "us-east-1" });
 
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const sesClient = new SESClient({ region: "us-east-1" });
@@ -48,6 +50,96 @@ async function resolveTableFromAdmin(event) {
 
   return result.Items[0].orgtablename;
 }
+
+// Helper: upload base64 image to S3 and return the S3 URL
+async function uploadBase64ToS3(base64Data, fieldName, payloadId) {
+  const bucketName = process.env.BOOK_COVER_BUCKET || "authexit";
+  // Support both raw base64 and data URI format (data:image/png;base64,...)
+  let imageBuffer;
+  let contentType = "image/jpeg"; // default
+
+  if (base64Data.startsWith("data:")) {
+    const matches = base64Data.match(/^data:(.+);base64,(.+)$/);
+    if (matches) {
+      contentType = matches[1];
+      imageBuffer = Buffer.from(matches[2], "base64");
+    } else {
+      throw new Error(`Invalid data URI format for ${fieldName}`);
+    }
+  } else {
+    imageBuffer = Buffer.from(base64Data, "base64");
+  }
+
+  // Determine file extension from content type
+  const extMap = {
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+  };
+  const ext = extMap[contentType] || "jpg";
+  const timestamp = Date.now();
+  const itemId = payloadId || `item-${timestamp}`;
+  const s3Key = `bookcover/${itemId}-${fieldName}-${timestamp}.${ext}`;
+
+  console.log(`Uploading to S3 with key: ${s3Key}`);
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: bucketName,
+      Key: s3Key,
+      Body: imageBuffer,
+      ContentType: contentType,
+    }),
+  );
+
+  // Return the public S3 URL
+  const bucketUrl = process.env.BUCKET_URL || `https://${bucketName}.s3.us-east-1.amazonaws.com`;
+  return `${bucketUrl}/${s3Key}`;
+}
+
+// Helper: Extract S3 key from a full URL and delete the object
+async function deleteS3ImageFromUrl(url) {
+  if (!url || !url.includes(".amazonaws.com/")) return;
+
+  try {
+    const bucketName = process.env.BOOK_COVER_BUCKET || "authexit";
+    // URL format: https://bucket.s3.region.amazonaws.com/key
+    const urlParts = url.split(".amazonaws.com/");
+    if (urlParts.length < 2) return;
+
+    const s3Key = urlParts[1];
+    console.log(`Deleting old image from S3: ${s3Key}`);
+
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: bucketName,
+        Key: s3Key,
+      }),
+    );
+  } catch (err) {
+    console.error("Failed to delete old image from S3:", err);
+    // We don't throw here to avoid failing the whole request if cleanup fails
+  }
+}
+
+// Helper to process all potential image fields in an item
+async function processItemImages(item) {
+  const imageFields = ["coverImage", "coverimage", "imageurl"];
+
+  for (const field of imageFields) {
+    const value = item[field];
+
+    // Check if value is base64 data (not an existing URL)
+    if (value && typeof value === "string" && !value.startsWith("http") && value.length > 50) {
+      console.log(`Uploading ${field} to S3...`);
+      item[field] = await uploadBase64ToS3(value, field, item.id);
+      console.log(`${field} uploaded:`, item[field]);
+    }
+  }
+
+  return item;
+}
 // initialise dynamoDB client
 exports.handler = async function (event, context) {
   let body;
@@ -69,6 +161,10 @@ exports.handler = async function (event, context) {
       delete requestJSON.tableName;
       console.log("Incoming message body from SQS : ", event);
       const { Records } = event;
+
+      // Process images before saving
+      await processItemImages(requestJSON);
+
       await dynamo.send(
         new PutCommand({
           TableName: targetTable,
@@ -202,15 +298,17 @@ exports.handler = async function (event, context) {
             break;
           }
 
+          const itemIdToRemove = event.pathParameters.id;
+
           await dynamo.send(
             new DeleteCommand({
               TableName: tableName,
               Key: {
-                id: event.pathParameters.id,
+                id: itemIdToRemove,
               },
             }),
           );
-          body = `Deleted item ${event.pathParameters.id}`;
+          body = `Deleted item ${itemIdToRemove}`;
           break;
         case "/{orgCode}/items/{column}/{value}":
           body = await dynamo.send(new ScanCommand({ TableName: tableName, FilterExpression: "contains(#columnname, :value)", ExpressionAttributeNames: { "#columnname": event.pathParameters.column }, ExpressionAttributeValues: { ":value": event.pathParameters.value } }));
@@ -473,6 +571,40 @@ exports.handler = async function (event, context) {
           await Promise.all(publishPromises);
           body = { message: "Notification sent" };
           break;
+        case "/{orgCode}/saveitem":
+          console.log("Incoming Save Item Request");
+
+          try {
+            await verifyJwt("saveitem");
+          } catch (err) {
+            statusCode = 401;
+            body = { error: err.message };
+            break;
+          }
+
+          const saveItemPayload = JSON.parse(event.body);
+
+          try {
+            await processItemImages(saveItemPayload);
+          } catch (uploadErr) {
+            console.error("Failed to process images:", uploadErr);
+            statusCode = 500;
+            body = { error: "Failed to upload images", details: uploadErr.message };
+            break;
+          }
+
+          // Save item to DynamoDB (with S3 URLs instead of base64)
+          await dynamo.send(
+            new PutCommand({
+              TableName: tableName,
+              Item: saveItemPayload,
+            }),
+          );
+
+          console.log("Item saved successfully with S3 image URLs");
+          body = { message: "Item saved successfully", id: saveItemPayload.id };
+          break;
+
         default:
           throw new Error(`Unsupported route: "${event.routeKey}"`);
       }

@@ -7,6 +7,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as eventsources from "aws-cdk-lib/aws-lambda-event-sources";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cdk from "aws-cdk-lib/core";
 
 export class AuthExitAppInfraCdkStack extends Stack {
@@ -22,16 +23,17 @@ export class AuthExitAppInfraCdkStack extends Stack {
     // var project = "KnowUrCircle-";
     // var project = "SSNDigitalMedia-";
     // Could be per environment
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "https://qa.authexit.org", "https://dev.authexit.org", "https://authexit.org", "https://www.authexit.org"];
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://qa.authexit.org", "https://dev.authexit.org", "https://authexit.org", "https://www.authexit.org"];
     ////..................SQS QUEUES................./////////
+    var s3BucketName = "authexit";
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
       schoolNames = ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4", "school5", "school6", "school7", "school8"];
-
+      s3BucketName = "authexit";
     } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
       project = project + "qa-";
       schoolNames = ["AuthExitAdmin-", "testschool-", "school2", "school3", "school4"];
-
+      s3BucketName = "authexitqa";
     } else {
       return;
     }
@@ -91,6 +93,9 @@ export class AuthExitAppInfraCdkStack extends Stack {
       tables[school] = table;
     }
 
+    ////..................S3 Bucket for Book Covers (Imported)................/////////
+    const bookCoverBucket = s3.Bucket.fromBucketName(this, `${project}BookCoverBucket`, s3BucketName);
+
     ////..................Roles................/////////
 
     const APIGatewayHandlerLambdaExecutionRole = new iam.Role(this, `${project}APIGatewayHandlerLambdaExecutionRole`, {
@@ -132,6 +137,10 @@ export class AuthExitAppInfraCdkStack extends Stack {
               "arn:aws:sns:us-east-1:287190273383:endpoint/APNS/AuthExit_Apple_PushNotification/*"
             ],
           }),
+          new iam.PolicyStatement({
+            actions: ["s3:PutObject", "s3:DeleteObject"],
+            resources: [bookCoverBucket.arnForObjects("*")],
+          }),
         ],
       }),
     );
@@ -164,6 +173,9 @@ export class AuthExitAppInfraCdkStack extends Stack {
       environment: {
         ADMIN_TABLE: tables["AuthExitAdmin-"].tableName,
         PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
+        BOOK_COVER_BUCKET: bookCoverBucket.bucketName,
+        S3_REGION: `${cdk.Stack.of(this).region}`,
+        BUCKET_URL: `https://${bookCoverBucket.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com`,
         JWT_SECRET: (() => {
           const secret = process.env.JWT_SECRET;
           if (!secret) {
@@ -172,6 +184,57 @@ export class AuthExitAppInfraCdkStack extends Stack {
           return secret || "your-default-secret";
         })(),
         // add more if you onboard more schools
+      },
+    });
+
+    // S3 Bucket Policy for the imported bucket
+    new s3.CfnBucketPolicy(this, `${project}BookCoverBucketPolicy`, {
+      bucket: bookCoverBucket.bucketName,
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "AllowLambdaS3Management",
+            Effect: "Allow",
+            Principal: {
+              AWS: APIGatewayHandlerLambdaExecutionRole.roleArn,
+            },
+            Action: ["s3:PutObject", "s3:DeleteObject"],
+            Resource: bookCoverBucket.arnForObjects("*"),
+          },
+          {
+            Sid: "DenyNonLambdaS3Management",
+            Effect: "Deny",
+            Principal: "*",
+            Action: ["s3:PutObject", "s3:DeleteObject"],
+            Resource: bookCoverBucket.arnForObjects("*"),
+            Condition: {
+              StringNotEquals: {
+                "aws:PrincipalArn": APIGatewayHandlerLambdaExecutionRole.roleArn,
+              },
+            },
+          },
+          {
+            Sid: "AllowPublicReadFromWebsite",
+            Effect: "Allow",
+            Principal: "*",
+            Action: "s3:GetObject",
+            Resource: bookCoverBucket.arnForObjects("*"),
+            Condition: {
+              StringLike: {
+                "aws:Referer": [
+                  "http://localhost:3000/*",
+                  "http://localhost:3001/*",
+                  "http://localhost:3002/*",
+                  "https://www.authexit.org/*",
+                  "https://dev.authexit.org/*",
+                  "https://qa.authexit.org/*",
+                  "https://authexit.org/*",
+                ],
+              },
+            },
+          },
+        ],
       },
     });
 
@@ -306,6 +369,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
+    const HttpApiRoute15 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute15`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/saveitem",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
       logGroupName: "/aws/lambda/" + ApiGatewayHandlerFunction.functionName,
@@ -373,6 +442,12 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/itemsbytypeanddate/{id}/{date}`,
+    });
+    const HttpApiLambdaPermission13 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission13`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/saveitem`,
     });
 
     ////..................Outputs................/////////
