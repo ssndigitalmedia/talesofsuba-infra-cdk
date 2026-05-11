@@ -8,8 +8,91 @@ const s3Client = new S3Client({ region: process.env.S3_REGION || "us-east-1" });
 
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const sesClient = new SESClient({ region: "us-east-1" });
-const { SNSClient, PublishCommand, CreatePlatformEndpointCommand, SetEndpointAttributesCommand } = require("@aws-sdk/client-sns");
+const { SNSClient, PublishCommand, CreatePlatformEndpointCommand, SetEndpointAttributesCommand, DeleteEndpointCommand } = require("@aws-sdk/client-sns");
 const snsClient = new SNSClient({ region: "us-east-1" });
+
+// Helper to send push notification to a specific device
+async function sendPushNotification(device, alertmessage, tableName) {
+  let endpointArn = device.endpointArn;
+
+  // Skip devices that don't have an endpoint registered
+  if (!endpointArn) {
+    console.log(`Skipping device ${device.id} because it has no endpointArn`);
+    return;
+  }
+
+  const platform = (device.platform || 'ios').toLowerCase();
+  let publishParams;
+
+  if (platform === 'ios' || platform === 'apple') {
+    publishParams = {
+      TargetArn: endpointArn,
+      Message: JSON.stringify({
+        APNS: JSON.stringify({
+          aps: {
+            alert: {
+              title: "Auth Exit",
+              body: alertmessage,
+            },
+            sound: "default",
+          },
+        }),
+      }),
+      MessageStructure: "json",
+    };
+  } else if (platform === 'android' || platform === 'google') {
+    // Standard FCM/GCM payload for Android
+    publishParams = {
+      TargetArn: endpointArn,
+      Message: JSON.stringify({
+        GCM: JSON.stringify({
+          notification: {
+            title: "Auth Exit",
+            body: alertmessage,
+            sound: "default",
+          },
+          data: {
+            message: alertmessage
+          }
+        }),
+      }),
+      MessageStructure: "json",
+    };
+  } else {
+    console.log(`Unsupported platform ${platform} for device ${device.id}`);
+    return;
+  }
+
+  try {
+    return await snsClient.send(new PublishCommand(publishParams));
+  } catch (error) {
+    if (error.name === "EndpointDisabledException" || error.message.includes("Endpoint is disabled")) {
+      console.log(`Endpoint ${endpointArn} is disabled. Deleting endpoint and removing from device record...`);
+
+      // Delete the disabled endpoint
+      try {
+        await snsClient.send(new DeleteEndpointCommand({ EndpointArn: endpointArn }));
+      } catch (deleteError) {
+        console.log(`Failed to delete endpoint ${endpointArn}:`, deleteError);
+      }
+
+      // Remove endpointArn from the database so it gets recreated next time
+      if (tableName) {
+        await dynamo.send(
+          new UpdateCommand({
+            TableName: tableName,
+            Key: { id: device.id },
+            UpdateExpression: "REMOVE endpointArn"
+          })
+        );
+      }
+      console.error(`Endpoint ${endpointArn} was disabled and has been cleared.`);
+    } else {
+      console.error(`Error publishing to ${endpointArn}:`, error);
+      throw error;
+    }
+  }
+}
 
 async function resolveTableFromAdmin(event) {
   const adminTable = process.env.ADMIN_TABLE;
@@ -438,7 +521,23 @@ exports.handler = async function (event, context) {
               const match = createErr.message.match(/Endpoint (arn:aws:sns:[^ ]+) already/);
               if (match && match[1]) {
                 generatedEndpointArn = match[1];
-                console.log(`Recovered existing endpointArn from error: ${generatedEndpointArn}`);
+                console.log(`Endpoint already exists. Recovered endpointArn: ${generatedEndpointArn}`);
+
+                // Ensure the existing endpoint is enabled and has correct metadata
+                try {
+                  await snsClient.send(new SetEndpointAttributesCommand({
+                    EndpointArn: generatedEndpointArn,
+                    Attributes: {
+                      Enabled: "true",
+                      Token: registerPayload.token,
+                      CustomUserData: deviceId
+                    }
+                  }));
+                  console.log(`Endpoint ${generatedEndpointArn} updated and enabled.`);
+                } catch (updateErr) {
+                  console.warn(`Failed to update/enable existing endpoint ${generatedEndpointArn}:`, updateErr.message);
+                  // We continue anyway, as the endpoint still exists
+                }
               } else {
                 console.error("Error parsing existing EndpointArn", createErr);
                 statusCode = 500;
@@ -510,66 +609,54 @@ exports.handler = async function (event, context) {
             break;
           }
 
-          const publishPromises = devices.map(async (device) => {
-            let endpointArn = device.endpointArn;
-
-            // Skip devices that don't have an endpoint registered
-            if (!endpointArn) {
-              console.log(`Skipping device ${device.id} because it has no endpointArn`);
-              return;
-            }
-
-            const publishParams = {
-              TargetArn: endpointArn,
-              Message: JSON.stringify({
-                APNS: JSON.stringify({
-                  aps: {
-                    alert: {
-                      title: "Auth Exit",
-                      body: alertmessage,
-                    },
-                    sound: "default",
-                  },
-                }),
-              }),
-              MessageStructure: "json",
-            };
-
-            try {
-              return await snsClient.send(new PublishCommand(publishParams));
-            } catch (error) {
-              if (error.name === "EndpointDisabledException" || error.message.includes("Endpoint is disabled")) {
-                console.log(`Endpoint ${endpointArn} is disabled. Deleting endpoint and removing from device record...`);
-
-                // Delete the disabled endpoint
-                try {
-                  const { DeleteEndpointCommand } = require("@aws-sdk/client-sns");
-                  await snsClient.send(new DeleteEndpointCommand({ EndpointArn: endpointArn }));
-                } catch (deleteError) {
-                  console.log(`Failed to delete endpoint ${endpointArn}:`, deleteError);
-                }
-
-                // Remove endpointArn from the database so it gets recreated next time
-                await dynamo.send(
-                  new UpdateCommand({
-                    TableName: tableName,
-                    Key: { id: device.id },
-                    UpdateExpression: "REMOVE endpointArn"
-                  })
-                );
-
-                console.error(`Endpoint ${endpointArn} was disabled and has been cleared.`);
-                // We don't retry immediately here because if it's disabled, the token is likely invalid
-                // and just re-enabling it usually fails again immediately.
-              } else {
-                console.error(`Error publishing to ${endpointArn}:`, error);
-                throw error;
-              }
-            }
-          });
+          const publishPromises = devices.map(device => sendPushNotification(device, alertmessage, tableName));
 
           await Promise.all(publishPromises);
           body = { message: "Notification sent" };
+          break;
+
+        case "/{orgCode}/sendpushUser":
+          console.log("Incoming targeted Push Notification Request");
+          const pushUserPayload = JSON.parse(event.body);
+          const targetEmail = pushUserPayload.email;
+          const targetMessage = pushUserPayload.message;
+
+          if (!targetEmail || !targetMessage) {
+            statusCode = 400;
+            body = { error: "Missing required fields: email, message" };
+            break;
+          }
+
+          const userDevicesResult = await dynamo.send(
+            new QueryCommand({
+              TableName: tableName,
+              IndexName: "type-index",
+              KeyConditionExpression: "#type = :type",
+              ExpressionAttributeNames: {
+                "#type": "type",
+              },
+              ExpressionAttributeValues: {
+                ":type": "userdevice",
+              },
+            })
+          );
+
+          // Filter by email in memory (case-insensitive)
+          const userDevices = userDevicesResult.Items ? userDevicesResult.Items.filter(device =>
+            device.email && targetEmail && device.email.toLowerCase() === targetEmail.toLowerCase()
+          ) : [];
+
+          console.log(`Found ${userDevices.length} devices for user ${targetEmail}`);
+
+          if (userDevices.length === 0) {
+            body = { message: `No devices found for user ${targetEmail}` };
+            break;
+          }
+
+          const userPushPromises = userDevices.map(device => sendPushNotification(device, targetMessage, tableName));
+
+          await Promise.all(userPushPromises);
+          body = { message: `Notification sent to user ${targetEmail}` };
           break;
         case "/{orgCode}/saveitem":
           console.log("Incoming Save Item Request");

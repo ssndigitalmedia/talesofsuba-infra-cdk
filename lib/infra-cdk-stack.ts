@@ -450,6 +450,13 @@ export class AuthExitAppInfraCdkStack extends Stack {
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/saveitem`,
     });
 
+    const HttpApiLambdaPermission14 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission14`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/sendpushUser`,
+    });
+
     ////..................Outputs................/////////
     new cdk.CfnOutput(this, `${project}HttpApiEndpoint`, {
       description: "API Endpoint",
