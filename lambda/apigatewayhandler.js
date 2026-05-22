@@ -135,7 +135,7 @@ async function resolveTableFromAdmin(event) {
 }
 
 // Helper: upload base64 image to S3 and return the S3 URL
-async function uploadBase64ToS3(base64Data, fieldName, payloadId) {
+async function uploadBase64ToS3(base64Data, fieldName, payloadId, orgCode) {
   const bucketName = process.env.BOOK_COVER_BUCKET || "authexit";
   // Support both raw base64 and data URI format (data:image/png;base64,...)
   let imageBuffer;
@@ -164,7 +164,8 @@ async function uploadBase64ToS3(base64Data, fieldName, payloadId) {
   const ext = extMap[contentType] || "jpg";
   const timestamp = Date.now();
   const itemId = payloadId || `item-${timestamp}`;
-  const s3Key = `bookcover/${itemId}-${fieldName}-${timestamp}.${ext}`;
+  const folder = orgCode ? `bookcover/${orgCode}` : "bookcover";
+  const s3Key = `${folder}/${itemId}-${fieldName}-${timestamp}.${ext}`;
 
   console.log(`Uploading to S3 with key: ${s3Key}`);
   await s3Client.send(
@@ -207,7 +208,7 @@ async function deleteS3ImageFromUrl(url) {
 }
 
 // Helper to process all potential image fields in an item
-async function processItemImages(item) {
+async function processItemImages(item, orgCode) {
   const imageFields = ["coverImage", "coverimage", "imageurl"];
 
   for (const field of imageFields) {
@@ -216,7 +217,7 @@ async function processItemImages(item) {
     // Check if value is base64 data (not an existing URL)
     if (value && typeof value === "string" && !value.startsWith("http") && value.length > 50) {
       console.log(`Uploading ${field} to S3...`);
-      item[field] = await uploadBase64ToS3(value, field, item.id);
+      item[field] = await uploadBase64ToS3(value, field, item.id, orgCode);
       console.log(`${field} uploaded:`, item[field]);
     }
   }
@@ -237,7 +238,8 @@ exports.handler = async function (event, context) {
     if (event?.Records !== undefined && event?.Records[0]?.eventSource === "aws:sqs") {
       const requestJSON = JSON.parse(event.Records[0].body);
       // reuse same resolver
-      event.pathParameters = { orgCode: requestJSON.orgCode };
+      const sqsOrgCode = requestJSON.orgCode;
+      event.pathParameters = { orgCode: sqsOrgCode };
       const targetTable = await resolveTableFromAdmin(event);
       console.log("Writing to table:", targetTable);
       delete requestJSON.orgCode;
@@ -246,7 +248,7 @@ exports.handler = async function (event, context) {
       const { Records } = event;
 
       // Process images before saving
-      await processItemImages(requestJSON);
+      await processItemImages(requestJSON, sqsOrgCode);
 
       await dynamo.send(
         new PutCommand({
@@ -672,7 +674,7 @@ exports.handler = async function (event, context) {
           const saveItemPayload = JSON.parse(event.body);
 
           try {
-            await processItemImages(saveItemPayload);
+            await processItemImages(saveItemPayload, event.pathParameters?.orgCode);
           } catch (uploadErr) {
             console.error("Failed to process images:", uploadErr);
             statusCode = 500;
