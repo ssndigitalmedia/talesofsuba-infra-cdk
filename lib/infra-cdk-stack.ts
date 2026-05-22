@@ -10,30 +10,22 @@ import * as eventsources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cdk from "aws-cdk-lib/core";
 
-export class AuthExitAppInfraCdkStack extends Stack {
+export class TempleAppInfraCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-    //var project = "FaceCheckInApp-";
-    //var project = "SplitEqualApp-";
-    var project = "AuthExit-";
-    var schoolNames: string[] = [];
-    //const schoolNames = ["tal-", "school1", "school2", "school3"];
-    //var project = "RecipeAIApp-";
-    // var project = "TalesOfSuba-";
-    // var project = "KnowUrCircle-";
-    // var project = "SSNDigitalMedia-";
-    // Could be per environment
+    var project = "temple-";
+    var tableNames: string[] = [];
     const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://qa.authexit.org", "https://dev.authexit.org", "https://authexit.org", "https://www.authexit.org"];
     ////..................SQS QUEUES................./////////
-    var s3BucketName = "authexit";
+    var s3BucketName = "temple";
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
-      schoolNames = ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4", "school5", "school6", "school7", "school8"];
-      s3BucketName = "authexit";
+      tableNames = ["TempleAdmin-", "testtemple-", "temple1", "temple2", "temple3"];
+      s3BucketName = "templeprod";
     } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
       project = project + "qa-";
-      schoolNames = ["AuthExitAdmin-", "testschool-", "school2", "school3", "school4"];
-      s3BucketName = "authexitqa";
+      tableNames = ["TempleAdmin-", "testtemple-", "temple1", "temple2", "temple3"];
+      s3BucketName = "templeqa";
     } else {
       return;
     }
@@ -61,14 +53,14 @@ export class AuthExitAppInfraCdkStack extends Stack {
 
     ////..................DynamoDB................/////////
     const tables: { [key: string]: dynamodb.Table } = {};
-    for (const school of schoolNames) {
-      const table = new dynamodb.Table(this, `${school}event-table`, {
+    for (const tbl of tableNames) {
+      const table = new dynamodb.Table(this, `${tbl}event-table`, {
         partitionKey: {
           name: "id",
           type: dynamodb.AttributeType.STRING,
         },
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-        tableName: `${school}EventTable`,
+        tableName: `${tbl}EventTable`,
       });
       table.addGlobalSecondaryIndex({
         indexName: "type-index",
@@ -90,11 +82,11 @@ export class AuthExitAppInfraCdkStack extends Stack {
         },
         projectionType: dynamodb.ProjectionType.ALL,
       });
-      tables[school] = table;
+      tables[tbl] = table;
     }
 
     ////..................S3 Bucket for Book Covers (Imported)................/////////
-    const bookCoverBucket = s3.Bucket.fromBucketName(this, `${project}BookCoverBucket`, s3BucketName);
+    const templeBucketName = s3.Bucket.fromBucketName(this, `${project}TempleBucket`, s3BucketName);
 
     ////..................Roles................/////////
 
@@ -105,8 +97,8 @@ export class AuthExitAppInfraCdkStack extends Stack {
     // collect all table ARNs dynamically
     const allTableArns: string[] = [];
 
-    for (const school of schoolNames) {
-      const table = tables[school];
+    for (const tbl of tableNames) {
+      const table = tables[tbl];
       allTableArns.push(table.tableArn); // main table
       allTableArns.push(`${table.tableArn}/index/*`); // GSI index
     }
@@ -131,15 +123,11 @@ export class AuthExitAppInfraCdkStack extends Stack {
           }),
           new iam.PolicyStatement({
             actions: ["sns:Publish", "sns:CreatePlatformEndpoint", "sns:SetEndpointAttributes", "sns:DeleteEndpoint"],
-            resources: [
-              "*",
-              "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
-              "arn:aws:sns:us-east-1:287190273383:endpoint/APNS/AuthExit_Apple_PushNotification/*"
-            ],
+            resources: ["*", "arn:aws:sns:us-east-1:287190273383:app/APNS/Temple_Apple_PushNotification", "arn:aws:sns:us-east-1:287190273383:endpoint/APNS/Temple_Apple_PushNotification/*"],
           }),
           new iam.PolicyStatement({
             actions: ["s3:PutObject", "s3:DeleteObject"],
-            resources: [bookCoverBucket.arnForObjects("*")],
+            resources: [templeBucketName.arnForObjects("*")],
           }),
         ],
       }),
@@ -171,11 +159,11 @@ export class AuthExitAppInfraCdkStack extends Stack {
       functionName: `${project}apigatewayhandler`,
       role: APIGatewayHandlerLambdaExecutionRole,
       environment: {
-        ADMIN_TABLE: tables["AuthExitAdmin-"].tableName,
-        PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/AuthExit_Apple_PushNotification",
-        BOOK_COVER_BUCKET: bookCoverBucket.bucketName,
+        ADMIN_TABLE: tables["TempleAdmin-"].tableName,
+        PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/Temple_Apple_PushNotification",
+        BOOK_COVER_BUCKET: templeBucketName.bucketName,
         S3_REGION: `${cdk.Stack.of(this).region}`,
-        BUCKET_URL: `https://${bookCoverBucket.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com`,
+        BUCKET_URL: `https://${templeBucketName.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com`,
         JWT_SECRET: (() => {
           const secret = process.env.JWT_SECRET;
           if (!secret) {
@@ -183,13 +171,13 @@ export class AuthExitAppInfraCdkStack extends Stack {
           }
           return secret || "your-default-secret";
         })(),
-        // add more if you onboard more schools
+        // add more if you onboard more org
       },
     });
 
     // S3 Bucket Policy for the imported bucket
-    new s3.CfnBucketPolicy(this, `${project}BookCoverBucketPolicy`, {
-      bucket: bookCoverBucket.bucketName,
+    new s3.CfnBucketPolicy(this, `${project}TempleBucketPolicy`, {
+      bucket: templeBucketName.bucketName,
       policyDocument: {
         Version: "2012-10-17",
         Statement: [
@@ -200,14 +188,14 @@ export class AuthExitAppInfraCdkStack extends Stack {
               AWS: APIGatewayHandlerLambdaExecutionRole.roleArn,
             },
             Action: ["s3:PutObject", "s3:DeleteObject"],
-            Resource: bookCoverBucket.arnForObjects("*"),
+            Resource: templeBucketName.arnForObjects("*"),
           },
           {
             Sid: "DenyNonLambdaS3Management",
             Effect: "Deny",
             Principal: "*",
             Action: ["s3:PutObject", "s3:DeleteObject"],
-            Resource: bookCoverBucket.arnForObjects("*"),
+            Resource: templeBucketName.arnForObjects("*"),
             Condition: {
               StringNotEquals: {
                 "aws:PrincipalArn": APIGatewayHandlerLambdaExecutionRole.roleArn,
@@ -219,18 +207,10 @@ export class AuthExitAppInfraCdkStack extends Stack {
             Effect: "Allow",
             Principal: "*",
             Action: "s3:GetObject",
-            Resource: bookCoverBucket.arnForObjects("*"),
+            Resource: templeBucketName.arnForObjects("*"),
             Condition: {
               StringLike: {
-                "aws:Referer": [
-                  "http://localhost:3000/*",
-                  "http://localhost:3001/*",
-                  "http://localhost:3002/*",
-                  "https://www.authexit.org/*",
-                  "https://dev.authexit.org/*",
-                  "https://qa.authexit.org/*",
-                  "https://authexit.org/*",
-                ],
+                "aws:Referer": corsOrigins.map((o) => `${o}/*`),
               },
             },
           },

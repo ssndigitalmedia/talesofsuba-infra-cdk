@@ -21,17 +21,17 @@ async function sendPushNotification(device, alertmessage, tableName) {
     return;
   }
 
-  const platform = (device.platform || 'ios').toLowerCase();
+  const platform = (device.platform || "ios").toLowerCase();
   let publishParams;
 
-  if (platform === 'ios' || platform === 'apple') {
+  if (platform === "ios" || platform === "apple") {
     publishParams = {
       TargetArn: endpointArn,
       Message: JSON.stringify({
         APNS: JSON.stringify({
           aps: {
             alert: {
-              title: "Auth Exit",
+              title: "Worship",
               body: alertmessage,
             },
             sound: "default",
@@ -40,7 +40,7 @@ async function sendPushNotification(device, alertmessage, tableName) {
       }),
       MessageStructure: "json",
     };
-  } else if (platform === 'android' || platform === 'google') {
+  } else if (platform === "android" || platform === "google") {
     // Standard FCM/GCM payload for Android
     publishParams = {
       TargetArn: endpointArn,
@@ -52,8 +52,8 @@ async function sendPushNotification(device, alertmessage, tableName) {
             sound: "default",
           },
           data: {
-            message: alertmessage
-          }
+            message: alertmessage,
+          },
         }),
       }),
       MessageStructure: "json",
@@ -82,8 +82,8 @@ async function sendPushNotification(device, alertmessage, tableName) {
           new UpdateCommand({
             TableName: tableName,
             Key: { id: device.id },
-            UpdateExpression: "REMOVE endpointArn"
-          })
+            UpdateExpression: "REMOVE endpointArn",
+          }),
         );
       }
       console.error(`Endpoint ${endpointArn} was disabled and has been cleared.`);
@@ -136,7 +136,7 @@ async function resolveTableFromAdmin(event) {
 
 // Helper: upload base64 image to S3 and return the S3 URL
 async function uploadBase64ToS3(base64Data, fieldName, payloadId, orgCode) {
-  const bucketName = process.env.BOOK_COVER_BUCKET || "authexit";
+  const bucketName = process.env.BOOK_COVER_BUCKET || "temple";
   // Support both raw base64 and data URI format (data:image/png;base64,...)
   let imageBuffer;
   let contentType = "image/jpeg"; // default
@@ -187,7 +187,7 @@ async function deleteS3ImageFromUrl(url) {
   if (!url || !url.includes(".amazonaws.com/")) return;
 
   try {
-    const bucketName = process.env.BOOK_COVER_BUCKET || "authexit";
+    const bucketName = process.env.BOOK_COVER_BUCKET || "temple";
     // URL format: https://bucket.s3.region.amazonaws.com/key
     const urlParts = url.split(".amazonaws.com/");
     if (urlParts.length < 2) return;
@@ -333,7 +333,7 @@ exports.handler = async function (event, context) {
         case "/{orgCode}/itemsbytypeanddate/{id}/{date}":
           const typeQuery = event.pathParameters.id;
           const dateQuery = event.pathParameters.date;
-          
+
           try {
             await verifyJwt("itemsbytypeanddate");
           } catch (err) {
@@ -514,7 +514,7 @@ exports.handler = async function (event, context) {
                 PlatformApplicationArn: process.env.PLATFORM_ARN,
                 Token: registerPayload.token,
                 CustomUserData: deviceId,
-              })
+              }),
             );
             generatedEndpointArn = result.EndpointArn;
             console.log("SNS Endpoint created successfully:", generatedEndpointArn);
@@ -527,14 +527,16 @@ exports.handler = async function (event, context) {
 
                 // Ensure the existing endpoint is enabled and has correct metadata
                 try {
-                  await snsClient.send(new SetEndpointAttributesCommand({
-                    EndpointArn: generatedEndpointArn,
-                    Attributes: {
-                      Enabled: "true",
-                      Token: registerPayload.token,
-                      CustomUserData: deviceId
-                    }
-                  }));
+                  await snsClient.send(
+                    new SetEndpointAttributesCommand({
+                      EndpointArn: generatedEndpointArn,
+                      Attributes: {
+                        Enabled: "true",
+                        Token: registerPayload.token,
+                        CustomUserData: deviceId,
+                      },
+                    }),
+                  );
                   console.log(`Endpoint ${generatedEndpointArn} updated and enabled.`);
                 } catch (updateErr) {
                   console.warn(`Failed to update/enable existing endpoint ${generatedEndpointArn}:`, updateErr.message);
@@ -558,19 +560,19 @@ exports.handler = async function (event, context) {
           const deviceItem = {
             id: deviceId,
             email: registerPayload.email,
-            role: registerPayload.roles ? registerPayload.roles.join(',') : registerPayload.role,
+            role: registerPayload.roles ? registerPayload.roles.join(",") : registerPayload.role,
             orgCode: registerPayload.orgCode,
             token: registerPayload.token,
-            platform: registerPayload.platform || 'ios',
-            type: registerPayload.type || 'userdevice',
-            endpointArn: generatedEndpointArn
+            platform: registerPayload.platform || "ios",
+            type: registerPayload.type || "userdevice",
+            endpointArn: generatedEndpointArn,
           };
 
           await dynamo.send(
             new PutCommand({
               TableName: tableName,
               Item: deviceItem,
-            })
+            }),
           );
 
           body = { message: "Device registered successfully", id: deviceId, endpointArn: generatedEndpointArn };
@@ -586,7 +588,7 @@ exports.handler = async function (event, context) {
             break;
           }
 
-          const roles = rolePush.split(",").map(r => r.trim());
+          const roles = rolePush.split(",").map((r) => r.trim());
 
           const queryResult = await dynamo.send(
             new QueryCommand({
@@ -599,19 +601,17 @@ exports.handler = async function (event, context) {
               ExpressionAttributeValues: {
                 ":type": "userdevice",
               },
-            })
+            }),
           );
 
-          const devices = queryResult.Items ? queryResult.Items.filter(device =>
-            device.role && roles.some(role => device.role.includes(role))
-          ) : [];
+          const devices = queryResult.Items ? queryResult.Items.filter((device) => device.role && roles.some((role) => device.role.includes(role))) : [];
 
           if (devices.length === 0) {
             body = { message: "No devices found" };
             break;
           }
 
-          const publishPromises = devices.map(device => sendPushNotification(device, alertmessage, tableName));
+          const publishPromises = devices.map((device) => sendPushNotification(device, alertmessage, tableName));
 
           await Promise.all(publishPromises);
           body = { message: "Notification sent" };
@@ -640,13 +640,11 @@ exports.handler = async function (event, context) {
               ExpressionAttributeValues: {
                 ":type": "userdevice",
               },
-            })
+            }),
           );
 
           // Filter by email in memory (case-insensitive)
-          const userDevices = userDevicesResult.Items ? userDevicesResult.Items.filter(device =>
-            device.email && targetEmail && device.email.toLowerCase() === targetEmail.toLowerCase()
-          ) : [];
+          const userDevices = userDevicesResult.Items ? userDevicesResult.Items.filter((device) => device.email && targetEmail && device.email.toLowerCase() === targetEmail.toLowerCase()) : [];
 
           console.log(`Found ${userDevices.length} devices for user ${targetEmail}`);
 
@@ -655,7 +653,7 @@ exports.handler = async function (event, context) {
             break;
           }
 
-          const userPushPromises = userDevices.map(device => sendPushNotification(device, targetMessage, tableName));
+          const userPushPromises = userDevices.map((device) => sendPushNotification(device, targetMessage, tableName));
 
           await Promise.all(userPushPromises);
           body = { message: `Notification sent to user ${targetEmail}` };
