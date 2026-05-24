@@ -1,40 +1,40 @@
 {
   "version": "53.0.0",
   "artifacts": {
-    "AuthExitAppInfraCdkStack.assets": {
+    "TempleAppInfraCdkStack.assets": {
       "type": "cdk:asset-manifest",
       "properties": {
-        "file": "AuthExitAppInfraCdkStack.assets.json",
+        "file": "TempleAppInfraCdkStack.assets.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
       }
     },
-    "AuthExitAppInfraCdkStack": {
+    "TempleAppInfraCdkStack": {
       "type": "aws:cloudformation:stack",
-      "environment": "aws://287190273383/us-east-1",
+      "environment": "aws://287190273383/ap-south-1",
       "properties": {
-        "templateFile": "AuthExitAppInfraCdkStack.template.json",
+        "templateFile": "TempleAppInfraCdkStack.template.json",
         "terminationProtection": false,
         "validateOnSynth": false,
-        "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-us-east-1",
-        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-us-east-1/2d037ec7ae629f13df0ad37abbf793552af13ae6beea59207601ca2825f10e3b.json",
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-deploy-role-287190273383-ap-south-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-cfn-exec-role-287190273383-ap-south-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-287190273383-ap-south-1/b02e159ea099f94c23ba75c7bb1a7a2b43e5fe7f851730896a67ceb0676e2c22.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
-          "AuthExitAppInfraCdkStack.assets"
+          "TempleAppInfraCdkStack.assets"
         ],
         "lookupRole": {
-          "arn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-lookup-role-287190273383-us-east-1",
+          "arn": "arn:${AWS::Partition}:iam::287190273383:role/cdk-hnb659fds-lookup-role-287190273383-ap-south-1",
           "requiresBootstrapStackVersion": 8,
           "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
         }
       },
       "dependencies": [
-        "AuthExitAppInfraCdkStack.assets"
+        "TempleAppInfraCdkStack.assets"
       ],
-      "additionalMetadataFile": "AuthExitAppInfraCdkStack.metadata.json",
-      "displayName": "AuthExitAppInfraCdkStack"
+      "additionalMetadataFile": "TempleAppInfraCdkStack.metadata.json",
+      "displayName": "TempleAppInfraCdkStack"
     },
     "Tree": {
       "type": "cdk:tree",
