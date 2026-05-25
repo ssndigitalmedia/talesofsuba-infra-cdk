@@ -164,7 +164,7 @@ async function uploadBase64ToS3(base64Data, fieldName, payloadId, orgCode) {
   const ext = extMap[contentType] || "jpg";
   const timestamp = Date.now();
   const itemId = payloadId || `item-${timestamp}`;
-  const folder = orgCode ? `bookcover/${orgCode}` : "bookcover";
+  const folder = orgCode ? `images/${orgCode}` : "images";
   const s3Key = `${folder}/${itemId}-${fieldName}-${timestamp}.${ext}`;
 
   console.log(`Uploading to S3 with key: ${s3Key}`);
