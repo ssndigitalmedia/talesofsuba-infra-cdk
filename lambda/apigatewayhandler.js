@@ -806,8 +806,18 @@ exports.handler = async function (event, context) {
             break;
           }
 
+          const imagetype = (aiImgPayload.imagetype || "deity").trim().toLowerCase();
           const aspectText = requestedSize === "16:9" ? "16:9 widescreen aspect ratio" : "1:1 square aspect ratio";
-          const imagePrompt = `Create a high-quality, photorealistic, devotional image of a Hindu temple subject: ${imageDescription}. The image must be reverent and traditional, with authentic South Indian / Indian Hindu temple iconography, intricate detail on deities, ornaments, garlands and ritual items, warm natural temple lighting (oil lamps, sunlight through gopuram), vibrant traditional colors (saffron, gold, red, deep blue), and a respectful, spiritual atmosphere. Do not include any text, captions, watermarks or logos. Render in ${aspectText}.`;
+          
+          let imagePrompt = `Create a high-quality, photorealistic, devotional image of a Hindu temple subject: ${imageDescription}. The image must be reverent and traditional, with authentic South Indian / Indian Hindu temple iconography, intricate detail on deities, ornaments, garlands and ritual items, warm natural temple lighting (oil lamps, sunlight through gopuram), vibrant traditional colors (saffron, gold, red, deep blue), and a respectful, spiritual atmosphere. Do not include any text, captions, watermarks or logos. Render in ${aspectText}.`;
+          
+          if (imagetype === "facility") {
+            imagePrompt = `Create a high-quality, photorealistic image of a Hindu temple facility: ${imageDescription}. The image must depict a clean, modern, yet culturally appropriate space suitable for an Indian temple environment (such as a hall, kitchen, parking, or community space), well-lit and functional, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+          } else if (imagetype === "campaign") {
+            imagePrompt = `Create a high-quality, photorealistic banner image for a Hindu temple event or campaign: ${imageDescription}. The image must be festive, inviting, and traditional, capturing the spiritual and communal atmosphere of a temple gathering, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+          } else if (imagetype === "service") {
+            imagePrompt = `Create a high-quality, photorealistic image representing a Hindu temple pooja service: ${imageDescription}. The image must be reverent, showing appropriate ritual items (like flowers, diyas, kalash, or havan) and a spiritual atmosphere, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+          }
 
           const aiImgResult = await callGeminiImage(imagePrompt, requestedSize);
 
@@ -844,7 +854,17 @@ exports.handler = async function (event, context) {
             break;
           }
 
-          const descPrompt = `Write a respectful, devotional description in approximately 30 words about the following Hindu temple topic: "${aiTitle}". Keep it informative, traditional, suitable for a temple website. Output plain text only (no markdown, no quotes).`;
+          const imagetype = (aiDescPayload.imagetype || "deity").trim().toLowerCase();
+          
+          let descPrompt = `Write a respectful, devotional description in approximately 30 words about the following Hindu temple topic: "${aiTitle}". Keep it informative, traditional, suitable for a temple website. Output plain text only (no markdown, no quotes).`;
+          
+          if (imagetype === "facility") {
+            descPrompt = `Write a clear, professional description in approximately 30 words for the following temple facility: "${aiTitle}". Highlight its usefulness, capacity, or amenities in a welcoming tone suitable for a temple website. Output plain text only (no markdown, no quotes).`;
+          } else if (imagetype === "campaign") {
+            descPrompt = `Write an inviting and festive description in approximately 30 words for the following temple event: "${aiTitle}". Encourage devotees to participate and highlight the spiritual or community significance. Output plain text only (no markdown, no quotes).`;
+          } else if (imagetype === "service") {
+            descPrompt = `Write a respectful and concise description in approximately 30 words for the following temple pooja service: "${aiTitle}". Explain its spiritual benefit or purpose briefly. Output plain text only (no markdown, no quotes).`;
+          }
 
           const aiDescResult = await callGemini(GEMINI_TEXT_MODEL, [{ parts: [{ text: descPrompt }] }], { maxOutputTokens: 256, temperature: 0.6 });
 
