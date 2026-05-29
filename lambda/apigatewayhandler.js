@@ -323,6 +323,8 @@ exports.handler = async function (event, context) {
             skipAuth = true;
           } else if (queryType === "committee") {
             skipAuth = true;
+          } else if (queryType === "devotee") {
+            skipAuth = true;
           }
 
           if (!skipAuth) {

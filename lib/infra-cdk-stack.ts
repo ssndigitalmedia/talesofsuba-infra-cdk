@@ -15,7 +15,7 @@ export class TempleAppInfraCdkStack extends Stack {
     super(scope, id, props);
     var project = "temple-";
     var tableNames: string[] = [];
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://qa.authexit.org", "https://dev.authexit.org", "https://authexit.org", "https://www.authexit.org", "https://dev.d3le407jlmhbrk.amplifyapp.com"];
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "https://dev-htky.templehub.org", "https://htky.templehub.org", "https://templehub.org", "https://dev.templehub.org", "https://qa.templehub.org", "https://www.templehub.org"];
     ////..................SQS QUEUES................./////////
     var s3BucketName = "temple";
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
