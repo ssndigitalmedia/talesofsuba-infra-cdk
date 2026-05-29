@@ -158,6 +158,7 @@ export class TempleAppInfraCdkStack extends Stack {
       handler: "apigatewayhandler.handler",
       functionName: `${project}apigatewayhandler`,
       role: APIGatewayHandlerLambdaExecutionRole,
+      timeout: Duration.seconds(60),
       environment: {
         ADMIN_TABLE: tables["TempleAdmin-"].tableName,
         PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/Temple_Apple_PushNotification",
@@ -170,6 +171,13 @@ export class TempleAppInfraCdkStack extends Stack {
             console.warn("\x1b[33m%s\x1b[0m", "WARNING: JWT_SECRET environment variable is not set. Using default secret - THIS IS INSECURE!");
           }
           return secret || "your-default-secret";
+        })(),
+        GEMINI_API_KEY: (() => {
+          const key = process.env.GEMINI_API_KEY;
+          if (!key) {
+            console.warn("\x1b[33m%s\x1b[0m", "WARNING: GEMINI_API_KEY environment variable is not set. AI routes will fail until it is provided.");
+          }
+          return key || "";
         })(),
         // add more if you onboard more org
       },
@@ -361,6 +369,18 @@ export class TempleAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
+    const HttpApiRoute17 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute17`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/create-ai-image-using-gemini",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
+    const HttpApiRoute18 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute18`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/create-ai-description-using-gemini",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
     // Associate the Lambda function with a CloudWatch Logs log group
     const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
       logGroupName: "/aws/lambda/" + ApiGatewayHandlerFunction.functionName,
@@ -441,6 +461,20 @@ export class TempleAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/sendpushUser`,
+    });
+
+    const HttpApiLambdaPermission15 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission15`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/create-ai-image-using-gemini`,
+    });
+
+    const HttpApiLambdaPermission16 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission16`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/create-ai-description-using-gemini`,
     });
 
     ////..................Outputs................/////////

@@ -11,6 +11,79 @@ const sesClient = new SESClient({ region: "us-east-1" });
 const { SNSClient, PublishCommand, CreatePlatformEndpointCommand, SetEndpointAttributesCommand, DeleteEndpointCommand } = require("@aws-sdk/client-sns");
 const snsClient = new SNSClient({ region: "us-east-1" });
 
+const GEMINI_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
+
+// Helper: call Gemini predict API for images
+async function callGeminiImage(prompt, aspectRatio) {
+  const apiKey = (process.env.GEMINI_API_KEY || "").trim();
+  if (!apiKey || apiKey === "REPLACE_WITH_YOUR_KEY") {
+    throw new Error("GEMINI_API_KEY environment variable is missing or invalid");
+  }
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict`;
+  const payload = {
+    instances: [{ prompt }],
+    parameters: { sampleCount: 1, aspectRatio: aspectRatio || "1:1" }
+  };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini Image API ${res.status}: ${errText}`);
+  }
+
+  const result = await res.json();
+  const predictions = result?.predictions || [];
+  if (predictions.length > 0 && predictions[0].bytesBase64Encoded) {
+    return {
+      type: "image",
+      mimeType: predictions[0].mimeType || "image/png",
+      data: predictions[0].bytesBase64Encoded
+    };
+  }
+  throw new Error("No image data returned from Gemini Image API");
+}
+
+// Helper: call Gemini generateContent API. Returns { type: "image"|"text", ... }
+async function callGemini(model, contents, generationConfig) {
+  const apiKey = (process.env.GEMINI_API_KEY || "").trim();
+  if (!apiKey || apiKey === "REPLACE_WITH_YOUR_KEY") {
+    throw new Error("GEMINI_API_KEY environment variable is missing or invalid");
+  }
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  const payload = { contents };
+  if (generationConfig) payload.generationConfig = generationConfig;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini API ${res.status}: ${errText}`);
+  }
+
+  const result = await res.json();
+  const parts = result?.candidates?.[0]?.content?.parts || [];
+  for (const part of parts) {
+    if (part.inlineData) {
+      return {
+        type: "image",
+        mimeType: part.inlineData.mimeType || "image/png",
+        data: part.inlineData.data || "",
+      };
+    }
+  }
+  const textPart = parts.find(p => typeof p.text === "string");
+  return { type: "text", text: textPart?.text || "" };
+}
+
 // Helper to send push notification to a specific device
 async function sendPushNotification(device, alertmessage, tableName) {
   let endpointArn = device.endpointArn;
@@ -713,6 +786,74 @@ exports.handler = async function (event, context) {
           console.log("Item saved successfully with S3 image URLs");
           body = { message: "Item saved successfully", id: saveItemPayload.id };
           break;
+
+        case "/{orgCode}/create-ai-image-using-gemini": {
+          try {
+            await verifyJwt("create-ai-image-using-gemini");
+          } catch (err) {
+            statusCode = 401;
+            body = { error: err.message };
+            break;
+          }
+
+          const aiImgPayload = JSON.parse(event.body || "{}");
+          const imageDescription = (aiImgPayload.imagedescription || "").trim();
+          const requestedSize = aiImgPayload.imagesize === "16:9" ? "16:9" : "1:1";
+
+          if (!imageDescription) {
+            statusCode = 400;
+            body = { error: "imagedescription is required" };
+            break;
+          }
+
+          const aspectText = requestedSize === "16:9" ? "16:9 widescreen aspect ratio" : "1:1 square aspect ratio";
+          const imagePrompt = `Create a high-quality, photorealistic, devotional image of a Hindu temple subject: ${imageDescription}. The image must be reverent and traditional, with authentic South Indian / Indian Hindu temple iconography, intricate detail on deities, ornaments, garlands and ritual items, warm natural temple lighting (oil lamps, sunlight through gopuram), vibrant traditional colors (saffron, gold, red, deep blue), and a respectful, spiritual atmosphere. Do not include any text, captions, watermarks or logos. Render in ${aspectText}.`;
+
+          const aiImgResult = await callGeminiImage(imagePrompt, requestedSize);
+
+          if (aiImgResult.type !== "image") {
+            statusCode = 502;
+            body = { error: "Image generation failed; model returned text instead of image", details: aiImgResult.text };
+            break;
+          }
+
+          body = {
+            mime_type: aiImgResult.mimeType,
+            image_base64: aiImgResult.data,
+            image_data_uri: `data:${aiImgResult.mimeType};base64,${aiImgResult.data}`,
+            imagesize: requestedSize,
+          };
+          break;
+        }
+
+        case "/{orgCode}/create-ai-description-using-gemini": {
+          try {
+            await verifyJwt("create-ai-description-using-gemini");
+          } catch (err) {
+            statusCode = 401;
+            body = { error: err.message };
+            break;
+          }
+
+          const aiDescPayload = JSON.parse(event.body || "{}");
+          const aiTitle = (aiDescPayload.title || aiDescPayload.about || "").trim();
+
+          if (!aiTitle) {
+            statusCode = 400;
+            body = { error: "title is required (e.g. \"about Ganesha\")" };
+            break;
+          }
+
+          const descPrompt = `Write a respectful, devotional description in approximately 30 words about the following Hindu temple topic: "${aiTitle}". Keep it informative, traditional, suitable for a temple website. Output plain text only (no markdown, no quotes).`;
+
+          const aiDescResult = await callGemini(GEMINI_TEXT_MODEL, [{ parts: [{ text: descPrompt }] }], { maxOutputTokens: 256, temperature: 0.6 });
+
+          body = {
+            title: aiTitle,
+            description: (aiDescResult.text || "").trim(),
+          };
+          break;
+        }
 
         default:
           throw new Error(`Unsupported route: "${event.routeKey}"`);
