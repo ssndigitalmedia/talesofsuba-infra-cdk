@@ -303,6 +303,26 @@ exports.handler = async function (event, context) {
             skipAuth = true;
           } else if (queryType === "otp") {
             skipAuth = true;
+          } else if (queryType === "deity") {
+            skipAuth = true;
+          } else if (queryType === "priest") {
+            skipAuth = true;
+          } else if (queryType === "service") {
+            skipAuth = true;
+          } else if (queryType === "event") {
+            skipAuth = true;
+          } else if (queryType === "facility") {
+            skipAuth = true;
+          } else if (queryType === "timing") {
+            skipAuth = true;
+          } else if (queryType === "newsletter") {
+            skipAuth = true;
+          } else if (queryType === "gallery") {
+            skipAuth = true;
+          } else if (queryType === "campaign") {
+            skipAuth = true;
+          } else if (queryType === "committee") {
+            skipAuth = true;
           }
 
           if (!skipAuth) {
