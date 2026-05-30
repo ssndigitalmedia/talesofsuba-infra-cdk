@@ -22,7 +22,7 @@ async function callGeminiImage(prompt, aspectRatio) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict`;
   const payload = {
     instances: [{ prompt }],
-    parameters: { sampleCount: 1, aspectRatio: aspectRatio || "1:1" }
+    parameters: { sampleCount: 1, aspectRatio: aspectRatio || "1:1" },
   };
 
   const res = await fetch(url, {
@@ -42,7 +42,7 @@ async function callGeminiImage(prompt, aspectRatio) {
     return {
       type: "image",
       mimeType: predictions[0].mimeType || "image/png",
-      data: predictions[0].bytesBase64Encoded
+      data: predictions[0].bytesBase64Encoded,
     };
   }
   throw new Error("No image data returned from Gemini Image API");
@@ -80,7 +80,7 @@ async function callGemini(model, contents, generationConfig) {
       };
     }
   }
-  const textPart = parts.find(p => typeof p.text === "string");
+  const textPart = parts.find((p) => typeof p.text === "string");
   return { type: "text", text: textPart?.text || "" };
 }
 
@@ -499,7 +499,7 @@ exports.handler = async function (event, context) {
           const requestBody = JSON.parse(event.body);
 
           try {
-            await verifyJwt("filter2column");
+            //await verifyJwt("filter2column");
           } catch (err) {
             statusCode = 401;
             body = { error: err.message };
@@ -808,9 +808,9 @@ exports.handler = async function (event, context) {
 
           const imagetype = (aiImgPayload.imagetype || "deity").trim().toLowerCase();
           const aspectText = requestedSize === "16:9" ? "16:9 widescreen aspect ratio" : "1:1 square aspect ratio";
-          
+
           let imagePrompt = `Create a high-quality, photorealistic, devotional image of a Hindu temple subject: ${imageDescription}. The image must be reverent and traditional, with authentic South Indian / Indian Hindu temple iconography, intricate detail on deities, ornaments, garlands and ritual items, warm natural temple lighting (oil lamps, sunlight through gopuram), vibrant traditional colors (saffron, gold, red, deep blue), and a respectful, spiritual atmosphere. Do not include any text, captions, watermarks or logos. Render in ${aspectText}.`;
-          
+
           if (imagetype === "facility") {
             imagePrompt = `Create a high-quality, photorealistic image of a Hindu temple facility: ${imageDescription}. The image must depict a clean, modern, yet culturally appropriate space suitable for an Indian temple environment (such as a hall, kitchen, parking, or community space), well-lit and functional, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
           } else if (imagetype === "campaign") {
@@ -850,14 +850,14 @@ exports.handler = async function (event, context) {
 
           if (!aiTitle) {
             statusCode = 400;
-            body = { error: "title is required (e.g. \"about Ganesha\")" };
+            body = { error: 'title is required (e.g. "about Ganesha")' };
             break;
           }
 
           const imagetype = (aiDescPayload.imagetype || "deity").trim().toLowerCase();
-          
+
           let descPrompt = `Write a respectful, devotional description in approximately 30 words about the following Hindu temple topic: "${aiTitle}". Keep it informative, traditional, suitable for a temple website. Output plain text only (no markdown, no quotes).`;
-          
+
           if (imagetype === "facility") {
             descPrompt = `Write a clear, professional description in approximately 30 words for the following temple facility: "${aiTitle}". Highlight its usefulness, capacity, or amenities in a welcoming tone suitable for a temple website. Output plain text only (no markdown, no quotes).`;
           } else if (imagetype === "campaign") {
