@@ -817,6 +817,8 @@ exports.handler = async function (event, context) {
             imagePrompt = `Create a high-quality, photorealistic banner image for a Hindu temple event or campaign: ${imageDescription}. The image must be festive, inviting, and traditional, capturing the spiritual and communal atmosphere of a temple gathering, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
           } else if (imagetype === "service") {
             imagePrompt = `Create a high-quality, photorealistic image representing a Hindu temple pooja service: ${imageDescription}. The image must be reverent, showing appropriate ritual items (like flowers, diyas, kalash, or havan) and a spiritual atmosphere, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+          } else if (imagetype === "slider") {
+            imagePrompt = `Create a high-quality, photorealistic widescreen banner image for a Hindu temple website slider highlighting: ${imageDescription}. The image must be visually striking, traditional, and welcoming, capturing the grand architecture or festive atmosphere of a temple, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
           }
 
           const aiImgResult = await callGeminiImage(imagePrompt, requestedSize);
@@ -864,6 +866,8 @@ exports.handler = async function (event, context) {
             descPrompt = `Write an inviting and festive description in approximately 30 words for the following temple event: "${aiTitle}". Encourage devotees to participate and highlight the spiritual or community significance. Output plain text only (no markdown, no quotes).`;
           } else if (imagetype === "service") {
             descPrompt = `Write a respectful and concise description in approximately 30 words for the following temple pooja service: "${aiTitle}". Explain its spiritual benefit or purpose briefly. Output plain text only (no markdown, no quotes).`;
+          } else if (imagetype === "slider") {
+            descPrompt = `Write an engaging and welcoming announcement in approximately 30 words for a temple website homepage slider highlighting: "${aiTitle}". Encourage devotees to learn more or participate. Output plain text only (no markdown, no quotes).`;
           }
 
           const aiDescResult = await callGemini(GEMINI_TEXT_MODEL, [{ parts: [{ text: descPrompt }] }], { maxOutputTokens: 256, temperature: 0.6 });
