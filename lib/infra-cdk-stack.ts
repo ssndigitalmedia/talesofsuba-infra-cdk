@@ -179,6 +179,13 @@ export class TempleAppInfraCdkStack extends Stack {
           }
           return key || "";
         })(),
+        GEMINI_IMAGE_MODEL: (() => {
+          const model = process.env.GEMINI_IMAGE_MODEL;
+          if (!model) {
+            console.warn("\x1b[33m%s\x1b[0m", "WARNING: GEMINI_IMAGE_MODEL environment variable is not set. AI image routes will fail until it is provided.");
+          }
+          return model || "";
+        })(),
         // add more if you onboard more org
       },
     });

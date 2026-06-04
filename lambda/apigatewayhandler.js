@@ -12,7 +12,8 @@ const { SNSClient, PublishCommand, CreatePlatformEndpointCommand, SetEndpointAtt
 const snsClient = new SNSClient({ region: "us-east-1" });
 
 const GEMINI_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
-const GEMINI_IMAGEN_MODEL = process.env.GEMINI_IMAGEN_MODEL || "imagen-3.0-generate-002";
+const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image";
+const GEMINI_IMAGE_API_VERSION = process.env.GEMINI_IMAGE_API_VERSION || "v1";
 
 // Helper: call Gemini predict API for images
 async function callGeminiImage(prompt, aspectRatio) {
@@ -20,7 +21,7 @@ async function callGeminiImage(prompt, aspectRatio) {
   if (!apiKey || apiKey === "REPLACE_WITH_YOUR_KEY") {
     throw new Error("GEMINI_API_KEY environment variable is missing or invalid");
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGEN_MODEL}:predict`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:predict`;
   const payload = {
     instances: [{ prompt }],
     parameters: {
@@ -54,12 +55,12 @@ async function callGeminiImage(prompt, aspectRatio) {
 }
 
 // Helper: call Gemini generateContent API. Returns { type: "image"|"text", ... }
-async function callGemini(model, contents, generationConfig) {
+async function callGemini(model, contents, generationConfig, apiVersion = "v1beta") {
   const apiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey || apiKey === "REPLACE_WITH_YOUR_KEY") {
     throw new Error("GEMINI_API_KEY environment variable is missing or invalid");
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent`;
   const payload = { contents };
   if (generationConfig) payload.generationConfig = generationConfig;
 
@@ -830,7 +831,7 @@ exports.handler = async function (event, context) {
             imagePrompt = `Create a high-quality, photorealistic widescreen banner image for a website slider highlighting: ${imageDescription}. Do not include any text any text, captions, watermarks or logos. Render in ${aspectText}.`;
           }
 
-          const aiImgResult = await callGeminiImage(imagePrompt, requestedSize);
+          const aiImgResult = await callGemini(GEMINI_IMAGE_MODEL, [{ parts: [{ text: imagePrompt }] }], { temperature: 0.4, topK: 1 }, GEMINI_IMAGE_API_VERSION);
 
           if (aiImgResult.type !== "image") {
             statusCode = 502;
