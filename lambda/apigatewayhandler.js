@@ -12,6 +12,7 @@ const { SNSClient, PublishCommand, CreatePlatformEndpointCommand, SetEndpointAtt
 const snsClient = new SNSClient({ region: "us-east-1" });
 
 const GEMINI_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
+const GEMINI_IMAGEN_MODEL = process.env.GEMINI_IMAGEN_MODEL || "imagen-3.0-generate-002";
 
 // Helper: call Gemini predict API for images
 async function callGeminiImage(prompt, aspectRatio) {
@@ -19,10 +20,14 @@ async function callGeminiImage(prompt, aspectRatio) {
   if (!apiKey || apiKey === "REPLACE_WITH_YOUR_KEY") {
     throw new Error("GEMINI_API_KEY environment variable is missing or invalid");
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGEN_MODEL}:predict`;
   const payload = {
     instances: [{ prompt }],
-    parameters: { sampleCount: 1, aspectRatio: aspectRatio || "1:1" },
+    parameters: {
+      sampleCount: 1,
+      aspectRatio: aspectRatio || "1:1",
+      outputOptions: { mimeType: "image/jpeg" },
+    },
   };
 
   const res = await fetch(url, {
@@ -816,13 +821,13 @@ exports.handler = async function (event, context) {
           let imagePrompt = `Create a high-quality, photorealistic image: ${imageDescription}. Do not include any text, captions, watermarks or logos. Render in ${aspectText}.`;
 
           if (imagetype === "facility") {
-            imagePrompt = `Create a high-quality, photorealistic image: ${imageDescription}. The image must bewithout any text, captions, watermarks or logos. Render in ${aspectText}.`;
+            imagePrompt = `Create a high-quality, photorealistic image: ${imageDescription}. Do not include any text any text, captions, watermarks or logos. Render in ${aspectText}.`;
           } else if (imagetype === "campaign") {
-            imagePrompt = `Create a high-quality, photorealistic banner image: ${imageDescription}. The image must be  without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+            imagePrompt = `Create a high-quality, photorealistic banner image: ${imageDescription}. Do not include any text any text, captions, watermarks or logos. Render in ${aspectText}.`;
           } else if (imagetype === "service") {
-            imagePrompt = `Create a high-quality, photorealistic image : ${imageDescription}. The image must be without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+            imagePrompt = `Create a high-quality, photorealistic image : ${imageDescription}. Do not include any text any text, captions, watermarks or logos. Render in ${aspectText}.`;
           } else if (imagetype === "slider") {
-            imagePrompt = `Create a high-quality, photorealistic widescreen banner image for a website slider highlighting: ${imageDescription}. The image must be without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+            imagePrompt = `Create a high-quality, photorealistic widescreen banner image for a website slider highlighting: ${imageDescription}. Do not include any text any text, captions, watermarks or logos. Render in ${aspectText}.`;
           }
 
           const aiImgResult = await callGeminiImage(imagePrompt, requestedSize);
@@ -862,10 +867,10 @@ exports.handler = async function (event, context) {
 
           const imagetype = (aiDescPayload.imagetype || "deity").trim().toLowerCase();
 
-          let descPrompt = `Write a respectful, devotional description in approximately 30 words about the following Hindu temple topic: "${aiTitle}". Keep it informative, traditional, suitable for a temple website. Output plain text only (no markdown, no quotes).`;
+          let descPrompt = `Write a respectful description in approximately 30 words about the following Hindu temple topic: "${aiTitle}". Keep it informative, traditional, suitable for a temple website. Output plain text only (no markdown, no quotes).`;
 
           if (imagetype === "facility") {
-            descPrompt = `Write a clear, professional description in approximately 30 words for the following temple facility: "${aiTitle}". Highlight its usefulness, capacity, or amenities in a welcoming tone suitable for a temple website. Output plain text only (no markdown, no quotes).`;
+            descPrompt = `Write a clear, professional description in approximately 30 words: "${aiTitle}". Highlight its usefulness, capacity, or amenities in a welcoming tone suitable for a temple website. Output plain text only (no markdown, no quotes).`;
           } else if (imagetype === "campaign") {
             descPrompt = `Write an inviting and festive description in approximately 30 words for the following temple event: "${aiTitle}". Encourage devotees to participate and highlight the spiritual or community significance. Output plain text only (no markdown, no quotes).`;
           } else if (imagetype === "service") {
