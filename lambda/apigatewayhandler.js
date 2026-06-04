@@ -813,16 +813,16 @@ exports.handler = async function (event, context) {
           const imagetype = (aiImgPayload.imagetype || "deity").trim().toLowerCase();
           const aspectText = requestedSize === "16:9" ? "16:9 widescreen aspect ratio" : "1:1 square aspect ratio";
 
-          let imagePrompt = `Create a high-quality, photorealistic, devotional image of a Hindu temple subject: ${imageDescription}. The image must be reverent and traditional, with authentic South Indian / Indian Hindu temple iconography, intricate detail on deities, ornaments, garlands and ritual items, warm natural temple lighting (oil lamps, sunlight through gopuram), vibrant traditional colors (saffron, gold, red, deep blue), and a respectful, spiritual atmosphere. Do not include any text, captions, watermarks or logos. Render in ${aspectText}.`;
+          let imagePrompt = `Create a high-quality, photorealistic image: ${imageDescription}. Do not include any text, captions, watermarks or logos. Render in ${aspectText}.`;
 
           if (imagetype === "facility") {
-            imagePrompt = `Create a high-quality, photorealistic image of a Hindu temple facility: ${imageDescription}. The image must depict a clean, modern, yet culturally appropriate space suitable for an Indian temple environment (such as a hall, kitchen, parking, or community space), well-lit and functional, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+            imagePrompt = `Create a high-quality, photorealistic image: ${imageDescription}. The image must bewithout any text, captions, watermarks or logos. Render in ${aspectText}.`;
           } else if (imagetype === "campaign") {
-            imagePrompt = `Create a high-quality, photorealistic banner image for a Hindu temple event or campaign: ${imageDescription}. The image must be festive, inviting, and traditional, capturing the spiritual and communal atmosphere of a temple gathering, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+            imagePrompt = `Create a high-quality, photorealistic banner image: ${imageDescription}. The image must be  without any text, captions, watermarks or logos. Render in ${aspectText}.`;
           } else if (imagetype === "service") {
-            imagePrompt = `Create a high-quality, photorealistic image representing a Hindu temple pooja service: ${imageDescription}. The image must be reverent, showing appropriate ritual items (like flowers, diyas, kalash, or havan) and a spiritual atmosphere, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+            imagePrompt = `Create a high-quality, photorealistic image : ${imageDescription}. The image must be without any text, captions, watermarks or logos. Render in ${aspectText}.`;
           } else if (imagetype === "slider") {
-            imagePrompt = `Create a high-quality, photorealistic widescreen banner image for a Hindu temple website slider highlighting: ${imageDescription}. The image must be visually striking, traditional, and welcoming, capturing the grand architecture or festive atmosphere of a temple, without any text, captions, watermarks or logos. Render in ${aspectText}.`;
+            imagePrompt = `Create a high-quality, photorealistic widescreen banner image for a website slider highlighting: ${imageDescription}. The image must be without any text, captions, watermarks or logos. Render in ${aspectText}.`;
           }
 
           const aiImgResult = await callGeminiImage(imagePrompt, requestedSize);
