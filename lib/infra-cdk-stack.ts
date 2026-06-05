@@ -15,7 +15,7 @@ export class TempleAppInfraCdkStack extends Stack {
     super(scope, id, props);
     var project = "temple-";
     var tableNames: string[] = [];
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "https://dev-htky.templehub.org", "https://htky.templehub.org", "https://templehub.org", "https://dev.templehub.org", "https://qa.templehub.org", "https://www.templehub.org"];
+    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "https://dev-htky.templehub.org", "https://htky.templehub.org", "https://htky.org", "https://www.htky.org", "https://templehub.org", "https://dev.templehub.org", "https://qa.templehub.org", "https://www.templehub.org"];
     ////..................SQS QUEUES................./////////
     var s3BucketName = "temple";
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
@@ -388,11 +388,9 @@ export class TempleAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
-    // Associate the Lambda function with a CloudWatch Logs log group
-    const lambdaLogGroup = new logs.LogGroup(this, "MyLambdaLogGroup", {
-      logGroupName: "/aws/lambda/" + ApiGatewayHandlerFunction.functionName,
-      retention: logs.RetentionDays.ONE_WEEK, // Set the desired retention period
-    });
+    // Reference the existing CloudWatch Logs log group that AWS Lambda
+    // auto-creates for the function (avoids "AlreadyExists" on deploy).
+    const lambdaLogGroup = logs.LogGroup.fromLogGroupName(this, "MyLambdaLogGroup", "/aws/lambda/" + ApiGatewayHandlerFunction.functionName);
 
     //Add SQS as event source to trigger Lambda
     ApiGatewayHandlerFunction.addEventSource(new eventsources.SqsEventSource(bufferingQueue));
