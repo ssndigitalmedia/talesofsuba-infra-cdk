@@ -21,7 +21,7 @@ export class TempleAppInfraCdkStack extends Stack {
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
       project = project;
       tableNames = ["TempleAdmin-", "testtemple-", "temple1-", "temple2-", "temple3-"];
-      s3BucketName = "templeprod";
+      s3BucketName = "templepord";
     } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
       project = project + "qa-";
       tableNames = ["TempleAdmin-", "testtemple-", "temple1-", "temple2-", "temple3-"];
