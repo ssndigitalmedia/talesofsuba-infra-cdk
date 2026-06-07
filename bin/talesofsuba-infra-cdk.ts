@@ -13,7 +13,7 @@ new TempleAppInfraCdkStack(app, "TempleAppInfraCdkStack", {
   env: {
     //account: "949365052778", // bala account
     account: "287190273383", //authexitAroun account
-    //region: "ap-south-1",
-    region: "us-east-1",
+    region: "ap-south-1",
+    //region: "us-east-1",
   },
 });
