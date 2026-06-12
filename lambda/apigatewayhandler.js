@@ -145,10 +145,15 @@ async function sendPushNotification(device, alertmessage, tableName) {
   try {
     return await snsClient.send(new PublishCommand(publishParams));
   } catch (error) {
-    if (error.name === "EndpointDisabledException" || error.message.includes("Endpoint is disabled")) {
-      console.log(`Endpoint ${endpointArn} is disabled. Deleting endpoint and removing from device record...`);
+    if (
+      error.name === "EndpointDisabledException" || 
+      error.message.includes("Endpoint is disabled") ||
+      error.name === "InvalidParameterException" ||
+      error.message.includes("No endpoint found for the target arn specified")
+    ) {
+      console.log(`Endpoint ${endpointArn} is disabled or invalid. Deleting endpoint and removing from device record...`);
 
-      // Delete the disabled endpoint
+      // Delete the disabled/invalid endpoint
       try {
         await snsClient.send(new DeleteEndpointCommand({ EndpointArn: endpointArn }));
       } catch (deleteError) {
@@ -165,10 +170,10 @@ async function sendPushNotification(device, alertmessage, tableName) {
           }),
         );
       }
-      console.error(`Endpoint ${endpointArn} was disabled and has been cleared.`);
+      console.error(`Endpoint ${endpointArn} was invalid/disabled and has been cleared.`);
     } else {
       console.error(`Error publishing to ${endpointArn}:`, error);
-      throw error;
+      // Don't throw, just log, so Promise.all doesn't fail for other devices
     }
   }
 }
