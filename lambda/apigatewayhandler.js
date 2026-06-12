@@ -215,7 +215,7 @@ async function resolveTableFromAdmin(event) {
 
 // Helper: upload base64 image to S3 and return the S3 URL
 async function uploadBase64ToS3(base64Data, fieldName, payloadId, orgCode) {
-  const bucketName = process.env.BOOK_COVER_BUCKET || "temple";
+  const bucketName = process.env.BUCKET_NAME || "templeqa";
   // Support both raw base64 and data URI format (data:image/png;base64,...)
   let imageBuffer;
   let contentType = "image/jpeg"; // default
@@ -266,7 +266,7 @@ async function deleteS3ImageFromUrl(url) {
   if (!url || !url.includes(".amazonaws.com/")) return;
 
   try {
-    const bucketName = process.env.BOOK_COVER_BUCKET || "temple";
+    const bucketName = process.env.BUCKET_NAME || "templeqa";
     // URL format: https://bucket.s3.region.amazonaws.com/key
     const urlParts = url.split(".amazonaws.com/");
     if (urlParts.length < 2) return;

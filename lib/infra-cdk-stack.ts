@@ -15,7 +15,7 @@ export class TempleAppInfraCdkStack extends Stack {
     super(scope, id, props);
     var project = "temple-";
     var tableNames: string[] = [];
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "https://dev-htky.templehub.org", "https://htky.templehub.org", "https://sbht.templehub.org", "https://htky.org", "https://www.htky.org", "https://templehub.org", "https://dev.templehub.org", "https://qa.templehub.org", "https://www.templehub.org"];
+    const corsOrigins: string[] = ["http://192.168.1.160:3000", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "https://dev-htky.templehub.org", "https://htky.templehub.org", "https://sbht.templehub.org", "https://htky.org", "https://www.htky.org", "https://templehub.org", "https://dev.templehub.org", "https://qa.templehub.org", "https://www.templehub.org"];
     ////..................SQS QUEUES................./////////
     var s3BucketName = "temple";
     if (`${cdk.Stack.of(this).region}` == "us-east-1") {
@@ -161,12 +161,13 @@ export class TempleAppInfraCdkStack extends Stack {
       timeout: Duration.seconds(60),
       environment: {
         ADMIN_TABLE: tables["TempleAdmin-"].tableName,
-        PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/Temple_Apple_PushNotification",
-        BOOK_COVER_BUCKET: templeBucketName.bucketName,
+        PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/TempleHub_Apple_PushNotification",
+        BUCKET_NAME: templeBucketName.bucketName,
         S3_REGION: `${cdk.Stack.of(this).region}`,
         BUCKET_URL: `https://${templeBucketName.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com`,
         JWT_SECRET: (() => {
-          const secret = process.env.JWT_SECRET;
+          const region = `${cdk.Stack.of(this).region}`;
+          const secret = region === "us-east-1" ? process.env.JWT_SECRET_PROD : process.env.JWT_SECRET_QA;
           if (!secret) {
             console.warn("\x1b[33m%s\x1b[0m", "WARNING: JWT_SECRET environment variable is not set. Using default secret - THIS IS INSECURE!");
           }

@@ -9,11 +9,12 @@ import { TempleAppInfraCdkStack } from "../lib/infra-cdk-stack";
 import * as process from "process";
 
 const app = new cdk.App();
+// QA -> ap-south-1, PROD -> us-east-1
+const region = process.env.ENV === "PROD" ? "us-east-1" : "ap-south-1";
 new TempleAppInfraCdkStack(app, "TempleAppInfraCdkStack", {
   env: {
     //account: "949365052778", // bala account
     account: "287190273383", //authexitAroun account
-    region: "ap-south-1",
-    //region: "us-east-1",
+    region,
   },
 });
