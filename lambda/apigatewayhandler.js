@@ -110,7 +110,7 @@ async function sendPushNotification(device, alertmessage, tableName) {
         APNS: JSON.stringify({
           aps: {
             alert: {
-              title: "Worship",
+              title: device.orgCode ? `Temple Hub - ${device.orgCode}` : "Temple Hub",
               body: alertmessage,
             },
             sound: "default",
@@ -126,7 +126,7 @@ async function sendPushNotification(device, alertmessage, tableName) {
       Message: JSON.stringify({
         GCM: JSON.stringify({
           notification: {
-            title: "Auth Exit",
+            title: "Temple Hub",
             body: alertmessage,
             sound: "default",
           },
@@ -145,12 +145,7 @@ async function sendPushNotification(device, alertmessage, tableName) {
   try {
     return await snsClient.send(new PublishCommand(publishParams));
   } catch (error) {
-    if (
-      error.name === "EndpointDisabledException" || 
-      error.message.includes("Endpoint is disabled") ||
-      error.name === "InvalidParameterException" ||
-      error.message.includes("No endpoint found for the target arn specified")
-    ) {
+    if (error.name === "EndpointDisabledException" || error.message.includes("Endpoint is disabled") || error.name === "InvalidParameterException" || error.message.includes("No endpoint found for the target arn specified")) {
       console.log(`Endpoint ${endpointArn} is disabled or invalid. Deleting endpoint and removing from device record...`);
 
       // Delete the disabled/invalid endpoint
