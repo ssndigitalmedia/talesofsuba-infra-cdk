@@ -408,6 +408,8 @@ exports.handler = async function (event, context) {
             skipAuth = true;
           } else if (queryType === "contact") {
             skipAuth = true;
+          } else if (queryType === "announcements") {
+            skipAuth = true;
           }
 
           if (!skipAuth) {
