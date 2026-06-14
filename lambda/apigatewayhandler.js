@@ -104,6 +104,7 @@ async function sendPushNotification(device, alertmessage, tableName) {
   let publishParams;
 
   if (platform === "ios" || platform === "apple") {
+    console.log(`Preparing iOS push notification for device ${device.id} with endpoint ${endpointArn}`);
     publishParams = {
       TargetArn: endpointArn,
       Message: JSON.stringify({
@@ -121,6 +122,7 @@ async function sendPushNotification(device, alertmessage, tableName) {
     };
   } else if (platform === "android" || platform === "google") {
     // Standard FCM/GCM payload for Android
+    console.log(`Preparing Android push notification for device ${device.id} with endpoint ${endpointArn}`);
     publishParams = {
       TargetArn: endpointArn,
       Message: JSON.stringify({
