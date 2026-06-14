@@ -123,7 +123,7 @@ export class TempleAppInfraCdkStack extends Stack {
           }),
           new iam.PolicyStatement({
             actions: ["sns:Publish", "sns:CreatePlatformEndpoint", "sns:SetEndpointAttributes", "sns:DeleteEndpoint"],
-            resources: ["*", "arn:aws:sns:us-east-1:287190273383:app/APNS/Temple_Apple_PushNotification", "arn:aws:sns:us-east-1:287190273383:endpoint/APNS/Temple_Apple_PushNotification/*"],
+            resources: ["*", "arn:aws:sns:us-east-1:287190273383:app/APNS/Temple_Apple_PushNotification", "arn:aws:sns:us-east-1:287190273383:app/GCM/Temple_Android_PushNotification", "arn:aws:sns:us-east-1:287190273383:endpoint/APNS/Temple_Apple_PushNotification/*", "arn:aws:sns:us-east-1:287190273383:endpoint/GCM/Temple_Android_PushNotification/*"],
           }),
           new iam.PolicyStatement({
             actions: ["s3:PutObject", "s3:DeleteObject"],
@@ -161,7 +161,8 @@ export class TempleAppInfraCdkStack extends Stack {
       timeout: Duration.seconds(60),
       environment: {
         ADMIN_TABLE: tables["TempleAdmin-"].tableName,
-        PLATFORM_ARN: "arn:aws:sns:us-east-1:287190273383:app/APNS/TempleHub_Apple_PushNotification",
+        PLATFORM_ARN_IOS: "arn:aws:sns:us-east-1:287190273383:app/APNS/TempleHub_Apple_PushNotification",
+        PLATFORM_ARN_ANDROID: "arn:aws:sns:us-east-1:287190273383:app/GCM/TempleHub_Android_PushNotification",
         BUCKET_NAME: templeBucketName.bucketName,
         S3_REGION: `${cdk.Stack.of(this).region}`,
         BUCKET_URL: `https://${templeBucketName.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com`,

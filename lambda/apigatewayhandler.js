@@ -126,7 +126,7 @@ async function sendPushNotification(device, alertmessage, tableName) {
       Message: JSON.stringify({
         GCM: JSON.stringify({
           notification: {
-            title: "Temple Hub",
+            title: device.orgCode ? `Temple Hub - ${device.orgCode}` : "Temple Hub",
             body: alertmessage,
             sound: "default",
           },
@@ -614,11 +614,14 @@ exports.handler = async function (event, context) {
           const deviceId = registerPayload.id || `userdevice-${registerPayload.email}`;
           let generatedEndpointArn = null;
 
+          const platformType = (registerPayload.platform || "ios").toLowerCase();
+          const targetPlatformArn = platformType === "android" || platformType === "google" ? process.env.PLATFORM_ARN_ANDROID : process.env.PLATFORM_ARN_IOS;
+
           // Attempt to create SNS Platform Endpoint
           try {
             const result = await snsClient.send(
               new CreatePlatformEndpointCommand({
-                PlatformApplicationArn: process.env.PLATFORM_ARN,
+                PlatformApplicationArn: targetPlatformArn,
                 Token: registerPayload.token,
                 CustomUserData: deviceId,
               }),
