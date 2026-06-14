@@ -613,7 +613,11 @@ exports.handler = async function (event, context) {
             break;
           }
 
-          const deviceId = registerPayload.id || `userdevice-${registerPayload.email}`;
+          const reqToken = registerPayload.token;
+          const tokenSuffix = reqToken 
+            ? `${reqToken.slice(0, 5)}-${reqToken.slice(-5)}` 
+            : `${Math.random().toString(36).substring(2, 7)}-${Math.random().toString(36).substring(2, 7)}`;
+          const deviceId = registerPayload.id || `userdevice-${registerPayload.orgCode}-${registerPayload.email}-${tokenSuffix}`;
           let generatedEndpointArn = null;
 
           const platformType = (registerPayload.platform || "ios").toLowerCase();
@@ -678,7 +682,7 @@ exports.handler = async function (event, context) {
             platform: registerPayload.platform || "ios",
             type: registerPayload.type || "userdevice",
             endpointArn: generatedEndpointArn,
-            createddate: registerPayload.createddate,
+            createddate: registerPayload.createddate || new Date().toISOString(),
           };
 
           await dynamo.send(
