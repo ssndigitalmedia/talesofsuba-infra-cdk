@@ -678,6 +678,7 @@ exports.handler = async function (event, context) {
             platform: registerPayload.platform || "ios",
             type: registerPayload.type || "userdevice",
             endpointArn: generatedEndpointArn,
+            createddate: registerPayload.createddate,
           };
 
           await dynamo.send(
