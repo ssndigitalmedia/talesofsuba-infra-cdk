@@ -412,6 +412,16 @@ exports.handler = async function (event, context) {
             skipAuth = true;
           } else if (queryType === "announcements") {
             skipAuth = true;
+          } else if (queryType === "canteen-branch") {
+            skipAuth = true;
+          } else if (queryType === "canteen-menu") {
+            skipAuth = true;
+          } else if (queryType === "canteen-voucher") {
+            skipAuth = true;
+          } else if (queryType === "canteen-banner") {
+            skipAuth = true;
+          } else if (queryType === "canteen-campaign") {
+            skipAuth = true;
           }
 
           if (!skipAuth) {
@@ -614,9 +624,7 @@ exports.handler = async function (event, context) {
           }
 
           const reqToken = registerPayload.token;
-          const tokenSuffix = reqToken 
-            ? `${reqToken.slice(0, 5)}-${reqToken.slice(-5)}` 
-            : `${Math.random().toString(36).substring(2, 7)}-${Math.random().toString(36).substring(2, 7)}`;
+          const tokenSuffix = reqToken ? `${reqToken.slice(0, 5)}-${reqToken.slice(-5)}` : `${Math.random().toString(36).substring(2, 7)}-${Math.random().toString(36).substring(2, 7)}`;
           const deviceId = registerPayload.id || `userdevice-${registerPayload.orgCode}-${registerPayload.email}-${tokenSuffix}`;
           let generatedEndpointArn = null;
 
