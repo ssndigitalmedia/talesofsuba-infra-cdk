@@ -424,6 +424,10 @@ exports.handler = async function (event, context) {
             skipAuth = true;
           } else if (queryType === "canteen-campaign") {
             skipAuth = true;
+          } else if (queryType === "priest-services") {
+            skipAuth = true;
+          } else if (queryType === "booking-rule") {
+            skipAuth = true;
           }
 
           if (!skipAuth) {
