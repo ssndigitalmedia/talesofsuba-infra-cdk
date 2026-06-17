@@ -426,7 +426,7 @@ exports.handler = async function (event, context) {
             skipAuth = true;
           } else if (queryType === "priest-services") {
             skipAuth = true;
-          } else if (queryType === "booking-rule") {
+          } else if (queryType === "booking-rules") {
             skipAuth = true;
           }
 
