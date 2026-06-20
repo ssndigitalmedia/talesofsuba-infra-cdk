@@ -535,21 +535,57 @@ exports.handler = async function (event, context) {
           }
 
           const { column1, value1, column2, value2 } = requestBody;
-          // Define the ScanCommand with FilterExpression for two conditions
-          body = await dynamo.send(
-            new ScanCommand({
-              TableName: tableName,
-              FilterExpression: "#column1 = :value1 AND #column2 = :value2",
-              ExpressionAttributeNames: {
-                "#column1": column1,
-                "#column2": column2,
-              },
-              ExpressionAttributeValues: {
-                ":value1": value1,
-                ":value2": value2,
-              },
-            }),
-          );
+
+          // If one of the columns is "type", Query the type-index GSI (efficient) and
+          // use the other column as a filter. The order of the two columns doesn't matter.
+          let typeValue;
+          let filterColumn;
+          let filterValue;
+          if (column1 === "type") {
+            typeValue = value1;
+            filterColumn = column2;
+            filterValue = value2;
+          } else if (column2 === "type") {
+            typeValue = value2;
+            filterColumn = column1;
+            filterValue = value1;
+          }
+
+          if (typeValue !== undefined) {
+            body = await dynamo.send(
+              new QueryCommand({
+                TableName: tableName,
+                IndexName: "type-index",
+                KeyConditionExpression: "#type = :type",
+                FilterExpression: "#filtercol = :filterval",
+                ExpressionAttributeNames: {
+                  "#type": "type",
+                  "#filtercol": filterColumn,
+                },
+                ExpressionAttributeValues: {
+                  ":type": typeValue,
+                  ":filterval": filterValue,
+                },
+              }),
+            );
+            console.log("DD sucessfully filtered 2 column using GSI QueryCommand: ", requestBody);
+          } else {
+            // Neither column is "type" — fall back to a full table Scan.
+            body = await dynamo.send(
+              new ScanCommand({
+                TableName: tableName,
+                FilterExpression: "#column1 = :value1 AND #column2 = :value2",
+                ExpressionAttributeNames: {
+                  "#column1": column1,
+                  "#column2": column2,
+                },
+                ExpressionAttributeValues: {
+                  ":value1": value1,
+                  ":value2": value2,
+                },
+              }),
+            );
+          }
           body = body.Items;
           console.log("DD sucessfully filtered 2 column : ", requestBody);
           break;
