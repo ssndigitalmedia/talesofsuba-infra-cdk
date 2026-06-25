@@ -85,6 +85,23 @@ export class TempleAppInfraCdkStack extends Stack {
       tables[tbl] = table;
     }
 
+    ////..................Audit Logs Table................/////////
+    // Dedicated table for audit-log entries: PK orgCode, SK timestamp (ISO-8601),
+    // on-demand billing, with TTL on the numeric `ttl` (epoch seconds) attribute.
+    const auditLogsTable = new dynamodb.Table(this, `${project}audit-logs-table`, {
+      partitionKey: {
+        name: "orgCode",
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: "timestamp",
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: "ttl",
+      tableName: `${project}audit-logs`,
+    });
+
     ////..................S3 Bucket for Book Covers (Imported)................/////////
     const templeBucketName = s3.Bucket.fromBucketName(this, `${project}TempleBucket`, s3BucketName);
 
@@ -102,6 +119,8 @@ export class TempleAppInfraCdkStack extends Stack {
       allTableArns.push(table.tableArn); // main table
       allTableArns.push(`${table.tableArn}/index/*`); // GSI index
     }
+    // grant the Lambda read/write on the audit-logs table
+    allTableArns.push(auditLogsTable.tableArn);
     APIGatewayHandlerLambdaExecutionRole.attachInlinePolicy(
       new iam.Policy(this, `${project}APIGatewayHandlerInlinePolicy`, {
         statements: [
@@ -161,6 +180,7 @@ export class TempleAppInfraCdkStack extends Stack {
       timeout: Duration.seconds(60),
       environment: {
         ADMIN_TABLE: tables["TempleAdmin-"].tableName,
+        AUDIT_LOG_TABLE: auditLogsTable.tableName,
         PLATFORM_ARN_IOS: "arn:aws:sns:us-east-1:287190273383:app/APNS/TempleHub_Apple_PushNotification",
         PLATFORM_ARN_ANDROID: "arn:aws:sns:us-east-1:287190273383:app/GCM/TempleHub_Android_PushNotification",
         BUCKET_NAME: templeBucketName.bucketName,
@@ -390,6 +410,12 @@ export class TempleAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
+    const HttpApiRoute19 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute19`, {
+      apiId: api.ref,
+      routeKey: "GET /{orgCode}/audit-logs",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
     // Reference the existing CloudWatch Logs log group that AWS Lambda
     // auto-creates for the function (avoids "AlreadyExists" on deploy).
     const lambdaLogGroup = logs.LogGroup.fromLogGroupName(this, "MyLambdaLogGroup", "/aws/lambda/" + ApiGatewayHandlerFunction.functionName);
@@ -482,6 +508,13 @@ export class TempleAppInfraCdkStack extends Stack {
       functionName: ApiGatewayHandlerFunction.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/create-ai-description-using-gemini`,
+    });
+
+    const HttpApiLambdaPermission17 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission17`, {
+      action: "lambda:InvokeFunction",
+      functionName: ApiGatewayHandlerFunction.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/audit-logs`,
     });
 
     ////..................Outputs................/////////

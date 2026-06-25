@@ -836,6 +836,27 @@ exports.handler = async function (event, context) {
 
           const saveItemPayload = JSON.parse(event.body);
 
+          // Route audit-log entries to the dedicated audit-logs table (PK orgCode, SK timestamp).
+          if (saveItemPayload.type === "audit-log") {
+            const nowSec = Math.floor(Date.now() / 1000);
+            const TWO_YEARS_SEC = 2 * 365 * 24 * 60 * 60;
+            const auditItem = {
+              ...saveItemPayload,
+              orgCode: event.pathParameters?.orgCode,
+              timestamp: saveItemPayload.timestamp || new Date().toISOString(),
+              ttl: saveItemPayload.ttl || nowSec + TWO_YEARS_SEC,
+            };
+            await dynamo.send(
+              new PutCommand({
+                TableName: process.env.AUDIT_LOG_TABLE,
+                Item: auditItem,
+              }),
+            );
+            console.log("Audit-log saved to audit-logs table");
+            body = { message: "Audit log saved", orgCode: auditItem.orgCode, timestamp: auditItem.timestamp };
+            break;
+          }
+
           try {
             await processItemImages(saveItemPayload, event.pathParameters?.orgCode);
           } catch (uploadErr) {
@@ -856,6 +877,68 @@ exports.handler = async function (event, context) {
           console.log("Item saved successfully with S3 image URLs");
           body = { message: "Item saved successfully", id: saveItemPayload.id };
           break;
+
+        case "/{orgCode}/audit-logs": {
+          try {
+            await verifyJwt("audit-logs");
+          } catch (err) {
+            statusCode = 401;
+            body = { error: err.message };
+            break;
+          }
+
+          const auditOrgCode = event.pathParameters?.orgCode;
+          const qs = event.queryStringParameters || {};
+          const from = qs.from;
+          const to = qs.to;
+          const limit = qs.limit ? Math.min(parseInt(qs.limit, 10) || 50, 200) : 50;
+
+          // PK = orgCode, optional SK (timestamp) range via from..to
+          let keyCondition = "orgCode = :o";
+          const exprValues = { ":o": auditOrgCode };
+          if (from && to) {
+            keyCondition += " AND #ts BETWEEN :from AND :to";
+            exprValues[":from"] = from;
+            exprValues[":to"] = to;
+          } else if (from) {
+            keyCondition += " AND #ts >= :from";
+            exprValues[":from"] = from;
+          } else if (to) {
+            keyCondition += " AND #ts <= :to";
+            exprValues[":to"] = to;
+          }
+
+          // Decode pagination cursor
+          let exclusiveStartKey;
+          if (qs.nextToken) {
+            try {
+              exclusiveStartKey = JSON.parse(Buffer.from(qs.nextToken, "base64").toString("utf8"));
+            } catch (e) {
+              statusCode = 400;
+              body = { error: "Invalid nextToken" };
+              break;
+            }
+          }
+
+          const auditResult = await dynamo.send(
+            new QueryCommand({
+              TableName: process.env.AUDIT_LOG_TABLE,
+              KeyConditionExpression: keyCondition,
+              // "timestamp" is a reserved word — only declare the alias when used
+              ExpressionAttributeNames: from || to ? { "#ts": "timestamp" } : undefined,
+              ExpressionAttributeValues: exprValues,
+              ScanIndexForward: false, // newest first
+              Limit: limit,
+              ExclusiveStartKey: exclusiveStartKey,
+            }),
+          );
+
+          body = {
+            items: auditResult.Items || [],
+            nextToken: auditResult.LastEvaluatedKey ? Buffer.from(JSON.stringify(auditResult.LastEvaluatedKey)).toString("base64") : null,
+          };
+          break;
+        }
 
         case "/{orgCode}/create-ai-image-using-gemini": {
           try {
