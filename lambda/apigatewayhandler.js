@@ -3,8 +3,12 @@ const { DynamoDBDocumentClient, ScanCommand, PutCommand, UpdateCommand, GetComma
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client-secrets-manager");
-const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const s3Client = new S3Client({ region: process.env.S3_REGION || "us-east-1" });
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { TextractClient, AnalyzeDocumentCommand } = require("@aws-sdk/client-textract");
+const textractClient = new TextractClient({ region: process.env.S3_REGION || "us-east-1" });
+const Jimp = require("jimp");
 
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const sesClient = new SESClient({ region: "us-east-1" });
@@ -305,6 +309,89 @@ async function processItemImages(item, orgCode) {
 
   return item;
 }
+
+// ---------------- OCR / Check extraction helpers ----------------
+
+// Decode a base64 / data-URI image string into a Buffer + contentType.
+function decodeBase64Image(base64Data) {
+  if (base64Data.startsWith("data:")) {
+    const matches = base64Data.match(/^data:(.+);base64,(.+)$/);
+    if (!matches) throw new Error("Invalid data URI format for image");
+    return { buffer: Buffer.from(matches[2], "base64"), contentType: matches[1] };
+  }
+  return { buffer: Buffer.from(base64Data, "base64"), contentType: "image/jpeg" };
+}
+
+// Mask a value to its last 4 digits, e.g. "021000021" -> "****0021".
+function maskLast4(value) {
+  if (!value) return null;
+  const digits = String(value).replace(/\D/g, "");
+  if (!digits) return null;
+  return "****" + digits.slice(-4);
+}
+
+// Parse a currency-ish string ("$16.00", "16") into a number.
+function parseAmount(value) {
+  if (value == null) return null;
+  const num = parseFloat(String(value).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(num) ? num : null;
+}
+
+// Build a map of query alias -> { text, geometry } from Textract AnalyzeDocument blocks.
+function parseTextractQueries(blocks) {
+  const byId = {};
+  for (const b of blocks) byId[b.Id] = b;
+  const answers = {};
+  for (const b of blocks) {
+    if (b.BlockType !== "QUERY") continue;
+    const alias = b.Query?.Alias;
+    const resultRel = (b.Relationships || []).find((r) => r.Type === "ANSWER");
+    if (!alias || !resultRel) continue;
+    // Pick the highest-confidence answer block
+    let best;
+    for (const id of resultRel.Ids) {
+      const r = byId[id];
+      if (r && (!best || (r.Confidence || 0) > (best.Confidence || 0))) best = r;
+    }
+    if (best) answers[alias] = { text: best.Text || "", geometry: best.Geometry };
+  }
+  return answers;
+}
+
+// Collect bounding boxes (Textract Geometry.BoundingBox, ratios 0..1) for the
+// fields we must redact on the stored image: routing, account and signatures.
+function collectRedactionBoxes(blocks, answers) {
+  const boxes = [];
+  for (const alias of ["ROUTING_NUMBER", "ACCOUNT_NUMBER"]) {
+    const g = answers[alias]?.geometry?.BoundingBox;
+    if (g) boxes.push(g);
+  }
+  for (const b of blocks) {
+    if (b.BlockType === "SIGNATURE" && b.Geometry?.BoundingBox) boxes.push(b.Geometry.BoundingBox);
+  }
+  return boxes;
+}
+
+// Draw opaque black rectangles over the given boxes on a base64/buffer image.
+async function maskImageRegions(buffer, boxes) {
+  const image = await Jimp.read(buffer);
+  const w = image.bitmap.width;
+  const h = image.bitmap.height;
+  const black = 0x000000ff;
+  for (const box of boxes) {
+    // Pad slightly so the whole field is covered.
+    const pad = 0.004;
+    const x = Math.max(0, Math.floor((box.Left - pad) * w));
+    const y = Math.max(0, Math.floor((box.Top - pad) * h));
+    const bw = Math.min(w - x, Math.ceil((box.Width + pad * 2) * w));
+    const bh = Math.min(h - y, Math.ceil((box.Height + pad * 2) * h));
+    image.scan(x, y, bw, bh, function (px, py, idx) {
+      this.bitmap.data.writeUInt32BE(black, idx);
+    });
+  }
+  return image.getBufferAsync(Jimp.MIME_JPEG);
+}
+
 // initialise dynamoDB client
 exports.handler = async function (event, context) {
   let body;
@@ -314,7 +401,7 @@ exports.handler = async function (event, context) {
     "Content-Type": "application/json",
   };
   try {
-    console.log(event);
+    //console.log(event);
     console.log("Event Route Key: ", event.resource);
     if (event?.Records !== undefined && event?.Records[0]?.eventSource === "aws:sqs") {
       const requestJSON = JSON.parse(event.Records[0].body);
@@ -937,6 +1024,108 @@ exports.handler = async function (event, context) {
             items: auditResult.Items || [],
             nextToken: auditResult.LastEvaluatedKey ? Buffer.from(JSON.stringify(auditResult.LastEvaluatedKey)).toString("base64") : null,
           };
+          break;
+        }
+
+        case "/{orgCode}/ocrtextextract": {
+          try {
+            await verifyJwt("ocrtextextract");
+          } catch (err) {
+            statusCode = 401;
+            body = { error: err.message };
+            break;
+          }
+
+          // NOTE: never log the raw body / image — it contains sensitive financial data.
+          const ocrPayload = JSON.parse(event.body || "{}");
+          const docType = (ocrPayload.doctype || "").trim().toLowerCase();
+          const ocrOrgCode = event.pathParameters?.orgCode;
+
+          if (docType !== "check") {
+            statusCode = 400;
+            body = { error: `Unsupported doctype '${docType}'. Only 'check' is supported.` };
+            break;
+          }
+          if (!ocrPayload.imageurl) {
+            statusCode = 400;
+            body = { error: "imageurl (base64) is required" };
+            break;
+          }
+
+          // Decode and size-guard the image (checks are small; reject > 6 MB)
+          let decoded;
+          try {
+            decoded = decodeBase64Image(ocrPayload.imageurl);
+          } catch (e) {
+            statusCode = 400;
+            body = { error: "Invalid image data" };
+            break;
+          }
+          if (decoded.buffer.length > 6 * 1024 * 1024) {
+            statusCode = 413;
+            body = { error: "Image too large (max 6 MB)" };
+            break;
+          }
+
+          // Ask Textract for the specific check fields + signature regions.
+          const checkQueries = [
+            { Text: "What is the check number?", Alias: "CHECK_NUMBER" },
+            { Text: "What is the amount?", Alias: "AMOUNT" },
+            { Text: "What is the payer name?", Alias: "PAYER_NAME" },
+            { Text: "What is the payer address?", Alias: "PAYER_ADDRESS" },
+            { Text: "What is the bank name?", Alias: "BANK_NAME" },
+            { Text: "What is the memo?", Alias: "MEMO" },
+            { Text: "What is the date?", Alias: "CHECK_DATE" },
+            { Text: "What is the routing number?", Alias: "ROUTING_NUMBER" },
+            { Text: "What is the account number?", Alias: "ACCOUNT_NUMBER" },
+          ];
+
+          const textractResp = await textractClient.send(
+            new AnalyzeDocumentCommand({
+              Document: { Bytes: decoded.buffer },
+              FeatureTypes: ["QUERIES", "SIGNATURES"],
+              QueriesConfig: { Queries: checkQueries },
+            }),
+          );
+
+          const blocks = textractResp.Blocks || [];
+          const answers = parseTextractQueries(blocks);
+          const getText = (alias) => answers[alias]?.text || null;
+
+          // Mask the routing/account numbers and signature on the stored image.
+          const redactionBoxes = collectRedactionBoxes(blocks, answers);
+          const maskedBuffer = await maskImageRegions(decoded.buffer, redactionBoxes);
+
+          // Upload the MASKED image only, to the private secure-docs bucket.
+          const bucket = process.env.SECURE_DOCS_BUCKET;
+          const s3Key = `checks/${ocrOrgCode}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+          await s3Client.send(
+            new PutObjectCommand({
+              Bucket: bucket,
+              Key: s3Key,
+              Body: maskedBuffer,
+              ContentType: "image/jpeg",
+            }),
+          );
+
+          // Short-lived presigned URL (5 min) — object is otherwise private.
+          const imageUrl = await getSignedUrl(s3Client, new GetObjectCommand({ Bucket: bucket, Key: s3Key }), { expiresIn: 300 });
+
+          body = {
+            checkNumber: getText("CHECK_NUMBER"),
+            amount: parseAmount(getText("AMOUNT")),
+            payerAddress: getText("PAYER_ADDRESS"),
+            engine: "ocrextract",
+            routingLast4: maskLast4(getText("ROUTING_NUMBER")),
+            accountLast4: maskLast4(getText("ACCOUNT_NUMBER")),
+            payerName: getText("PAYER_NAME"),
+            memo: getText("MEMO"),
+            bankName: getText("BANK_NAME"),
+            checkDate: getText("CHECK_DATE"),
+            imageUrl,
+            s3Key,
+          };
+          console.log(`OCR check extraction complete for org ${ocrOrgCode}, key ${s3Key}`);
           break;
         }
 
