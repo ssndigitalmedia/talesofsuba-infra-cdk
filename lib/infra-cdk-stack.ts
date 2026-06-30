@@ -446,6 +446,12 @@ export class TempleAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
+    const HttpApiRoute21 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute21`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/get-presigned-url",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
     // Reference the existing CloudWatch Logs log group that AWS Lambda
     // auto-creates for the function (avoids "AlreadyExists" on deploy).
     const lambdaLogGroup = logs.LogGroup.fromLogGroupName(this, "MyLambdaLogGroup", "/aws/lambda/" + ApiGatewayHandlerFunction.functionName);

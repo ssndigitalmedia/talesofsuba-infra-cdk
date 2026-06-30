@@ -1027,6 +1027,41 @@ exports.handler = async function (event, context) {
           break;
         }
 
+        case "/{orgCode}/get-presigned-url": {
+          const method = (event.httpMethod || event.requestContext?.http?.method || "").toUpperCase();
+          if (method !== "POST") {
+            statusCode = 405;
+            body = { error: "Method Not Allowed" };
+            break;
+          }
+          const { s3Key } = JSON.parse(event.body);
+          if (!s3Key) {
+            statusCode = 400;
+            body = { error: "Missing s3Key in request body" };
+            break;
+          }
+
+          const secureBucket = process.env.SECURE_DOCS_BUCKET;
+          if (!secureBucket) {
+            statusCode = 500;
+            body = { error: "Secure bucket not configured" };
+            break;
+          }
+
+          const command = new GetObjectCommand({
+            Bucket: secureBucket,
+            Key: s3Key,
+          });
+
+          const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+
+          body = {
+            imageurl: presignedUrl,
+            expiresIn: 300,
+          };
+          break;
+        }
+
         case "/{orgCode}/ocrtextextract": {
           try {
             await verifyJwt("ocrtextextract");
