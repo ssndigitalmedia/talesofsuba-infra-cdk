@@ -394,6 +394,26 @@ async function maskImageRegions(buffer, boxes) {
 
 // initialise dynamoDB client
 exports.handler = async function (event, context) {
+  // Lambda authorizer invocation (HTTP API REQUEST authorizer, payload v2) — validate the
+  // JWT and return an allow/deny simple response instead of the normal proxy response.
+  if (event?.type === "REQUEST" && event?.routeArn) {
+    const authHeader = event.headers?.authorization || event.headers?.Authorization;
+    if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
+      console.log("Authorizer: missing or malformed Authorization header");
+      return { isAuthorized: false };
+    }
+    try {
+      const { jwtVerify } = await import("jose");
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+      const { payload } = await jwtVerify(authHeader.split(" ")[1], secret);
+      console.log("Authorizer: token verified");
+      return { isAuthorized: true, context: { sub: payload.sub || "", orgCode: payload.orgCode || "" } };
+    } catch (err) {
+      console.log("Authorizer: token verification failed -", err.message);
+      return { isAuthorized: false };
+    }
+  }
+
   let body;
   let statusCode = 200;
 

@@ -193,6 +193,16 @@ export class TempleAppInfraCdkStack extends Stack {
       }),
     );
 
+    // JWT signing secret, chosen by region (prod vs QA). Shared by the handler and the authorizer.
+    const jwtSecret = (() => {
+      const region = `${cdk.Stack.of(this).region}`;
+      const secret = region === "us-east-1" ? process.env.JWT_SECRET_PROD : process.env.JWT_SECRET_QA;
+      if (!secret) {
+        console.warn("\x1b[33m%s\x1b[0m", "WARNING: JWT_SECRET environment variable is not set. Using default secret - THIS IS INSECURE!");
+      }
+      return secret || "your-default-secret";
+    })();
+
     //Lambda - apigatewayhandlerFunction
     const ApiGatewayHandlerFunction = new lambda.Function(this, `${project}apigatewayhandler`, {
       runtime: lambda.Runtime.NODEJS_22_X,
@@ -210,14 +220,7 @@ export class TempleAppInfraCdkStack extends Stack {
         BUCKET_NAME: templeBucketName.bucketName,
         S3_REGION: `${cdk.Stack.of(this).region}`,
         BUCKET_URL: `https://${templeBucketName.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com`,
-        JWT_SECRET: (() => {
-          const region = `${cdk.Stack.of(this).region}`;
-          const secret = region === "us-east-1" ? process.env.JWT_SECRET_PROD : process.env.JWT_SECRET_QA;
-          if (!secret) {
-            console.warn("\x1b[33m%s\x1b[0m", "WARNING: JWT_SECRET environment variable is not set. Using default secret - THIS IS INSECURE!");
-          }
-          return secret || "your-default-secret";
-        })(),
+        JWT_SECRET: jwtSecret,
         GEMINI_API_KEY: (() => {
           const key = process.env.GEMINI_API_KEY;
           if (!key) {
@@ -349,6 +352,22 @@ export class TempleAppInfraCdkStack extends Stack {
       integrationUri: ApiGatewayHandlerFunction.functionArn,
     });
 
+    ////..................JWT Authorizer................/////////
+    // Reuses the existing handler Lambda (it branches on event.type === "REQUEST").
+    // API Gateway assumes ApiGwToLambdaRole to invoke it (that role already has
+    // lambda:InvokeFunction on this function), so no extra CfnPermission is needed.
+    const jwtAuthorizer = new apigwv2.CfnAuthorizer(this, `${project}JwtAuthorizer`, {
+      apiId: api.ref,
+      authorizerType: "REQUEST",
+      name: `${project}JwtAuthorizer`,
+      authorizerPayloadFormatVersion: "2.0",
+      enableSimpleResponses: true,
+      identitySource: ["$request.header.Authorization"],
+      authorizerUri: `arn:aws:apigateway:${cdk.Stack.of(this).region}:lambda:path/2015-03-31/functions/${ApiGatewayHandlerFunction.functionArn}/invocations`,
+      authorizerCredentialsArn: ApiGwToLambdaRole.roleArn,
+      authorizerResultTtlInSeconds: 0, // no caching while validating; raise later (e.g. 300) for perf
+    });
+
     const HttpApiRoute2 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg2`, {
       apiId: api.ref,
       routeKey: "GET /{orgCode}/itemsbytype/{id}",
@@ -364,11 +383,15 @@ export class TempleAppInfraCdkStack extends Stack {
       apiId: api.ref,
       routeKey: "PUT /{orgCode}/items",
       target: `integrations/${httpApiIntegSqsSendMessage.ref}`,
+      authorizationType: "CUSTOM",
+      authorizerId: jwtAuthorizer.ref,
     });
     const HttpApiRoute6 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg6`, {
       apiId: api.ref,
       routeKey: "POST /{orgCode}/items",
       target: `integrations/${httpApiIntegSqsSendMessage.ref}`,
+      authorizationType: "CUSTOM",
+      authorizerId: jwtAuthorizer.ref,
     });
     const HttpApiRoute3 = new apigwv2.CfnRoute(this, `${project}HttpApiRouteSqsSendMsg3`, {
       apiId: api.ref,
