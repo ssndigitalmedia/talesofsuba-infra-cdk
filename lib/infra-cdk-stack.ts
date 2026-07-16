@@ -116,6 +116,17 @@ export class TempleAppInfraCdkStack extends Stack {
       enforceSSL: true,
       versioned: true,
       removalPolicy: RemovalPolicy.RETAIN,
+      // Allow the browser to PUT (presigned upload for large files, e.g. newsletters)
+      // and GET (presigned view) directly against the bucket from our web origins.
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.PUT, s3.HttpMethods.GET, s3.HttpMethods.HEAD],
+          allowedOrigins: corsOrigins,
+          allowedHeaders: ["*"],
+          exposedHeaders: ["ETag"],
+          maxAge: 3000,
+        },
+      ],
     });
 
     ////..................Roles................/////////
@@ -472,6 +483,15 @@ export class TempleAppInfraCdkStack extends Stack {
     const HttpApiRoute21 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute21`, {
       apiId: api.ref,
       routeKey: "POST /{orgCode}/get-presigned-url",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
+    // Presigned PUT for large direct-to-S3 uploads (newsletters, etc.) — see the
+    // get-upload-url case in apigatewayhandler.js. Bypasses the API Gateway/Lambda
+    // ~6MB payload limit; only the returned S3 key is persisted on the item.
+    const HttpApiRouteGetUploadUrl = new apigwv2.CfnRoute(this, `${project}HttpApiRouteGetUploadUrl`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/get-upload-url",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 

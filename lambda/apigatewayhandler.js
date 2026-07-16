@@ -1082,6 +1082,43 @@ exports.handler = async function (event, context) {
           break;
         }
 
+        case "/{orgCode}/get-upload-url": {
+          const method = (event.httpMethod || event.requestContext?.http?.method || "").toUpperCase();
+          if (method !== "POST") {
+            statusCode = 405;
+            body = { error: "Method Not Allowed" };
+            break;
+          }
+          await verifyJwt("get-upload-url");
+
+          const { contentType, kind, ext } = JSON.parse(event.body || "{}");
+          const secureBucket = process.env.SECURE_DOCS_BUCKET;
+          if (!secureBucket) {
+            statusCode = 500;
+            body = { error: "Secure bucket not configured" };
+            break;
+          }
+
+          const orgSlug = (event.pathParameters?.orgCode || orgCode || "public").toLowerCase();
+          const safeKind = String(kind || "document").replace(/[^a-z0-9_-]/gi, "").toLowerCase() || "document";
+          const safeExt = String(ext || "bin").replace(/[^a-z0-9]/gi, "").toLowerCase() || "bin";
+          const s3Key = `${safeKind}/${orgSlug}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${safeExt}`;
+
+          // Presigned PUT — the browser uploads the raw file DIRECTLY to S3, bypassing the
+          // API Gateway/Lambda ~6MB payload limit (handles large newsletters, etc.).
+          // Only the returned `key` is persisted on the item; view it later via
+          // /{orgCode}/get-presigned-url (presigned GET on this same bucket).
+          const uploadCommand = new PutObjectCommand({
+            Bucket: secureBucket,
+            Key: s3Key,
+            ContentType: contentType || "application/octet-stream",
+          });
+          const uploadUrl = await getSignedUrl(s3Client, uploadCommand, { expiresIn: 300 });
+
+          body = { uploadUrl, key: s3Key, expiresIn: 300 };
+          break;
+        }
+
         case "/{orgCode}/ocrtextextract": {
           try {
             await verifyJwt("ocrtextextract");
