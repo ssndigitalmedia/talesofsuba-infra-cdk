@@ -292,6 +292,37 @@ async function deleteS3ImageFromUrl(url) {
   }
 }
 
+// Delete every S3 object an item references, before its DynamoDB row is removed.
+// Handles both the public image bucket (fields hold full amazonaws URLs) and the private
+// secure-docs bucket (fields hold a RAW object key, e.g. newsletter PDFs, payment proofs).
+async function deleteItemS3Objects(item) {
+  if (!item || typeof item !== "object") return;
+
+  const urlFields = ["coverImage", "coverimage", "imageurl", "image", "logo", "document"];
+  for (const f of urlFields) {
+    const v = item[f];
+    if (typeof v === "string" && v.includes(".amazonaws.com/")) {
+      await deleteS3ImageFromUrl(v);
+    }
+  }
+
+  const secureBucket = process.env.SECURE_DOCS_BUCKET;
+  if (secureBucket) {
+    const keyFields = ["document", "proofImageKey", "s3Key"];
+    for (const f of keyFields) {
+      const v = item[f];
+      if (typeof v === "string" && v && !/^(https?:|data:)/i.test(v)) {
+        try {
+          await s3Client.send(new DeleteObjectCommand({ Bucket: secureBucket, Key: v }));
+          console.log(`Deleted secure-docs object: ${v}`);
+        } catch (err) {
+          console.error(`Failed to delete secure-docs object ${v}:`, err);
+        }
+      }
+    }
+  }
+}
+
 // Helper to process all potential image fields in an item
 async function processItemImages(item, orgCode) {
   const imageFields = ["coverImage", "coverimage", "imageurl"];
@@ -614,6 +645,17 @@ exports.handler = async function (event, context) {
           }
 
           const itemIdToRemove = event.pathParameters.id;
+
+          // Clean up any S3 objects this item references (e.g. a newsletter PDF in the
+          // secure-docs bucket) before removing the row. Failures don't block the delete.
+          try {
+            const existingToRemove = await dynamo.send(new GetCommand({ TableName: tableName, Key: { id: itemIdToRemove } }));
+            if (existingToRemove && existingToRemove.Item) {
+              await deleteItemS3Objects(existingToRemove.Item);
+            }
+          } catch (cleanupErr) {
+            console.error("S3 cleanup on delete failed (continuing with row delete):", cleanupErr);
+          }
 
           await dynamo.send(
             new DeleteCommand({
