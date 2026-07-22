@@ -82,6 +82,22 @@ export class TempleAppInfraCdkStack extends Stack {
         },
         projectionType: dynamodb.ProjectionType.ALL,
       });
+      // Per-devotee order lookup (Canteen Spend Phase 4 / CANTEEN_SPEND_LAMBDA_SPEC §4).
+      // Sparse by design — only order items carry `devoteeId` (guests/walk-ins omit it),
+      // so this index contains only attributed orders. Lets a profile view read ONE
+      // devotee's orders directly instead of scanning all orders via type-index.
+      table.addGlobalSecondaryIndex({
+        indexName: "order-devotee-index",
+        partitionKey: {
+          name: "devoteeId",
+          type: dynamodb.AttributeType.STRING,
+        },
+        sortKey: {
+          name: "createdate",
+          type: dynamodb.AttributeType.STRING,
+        },
+        projectionType: dynamodb.ProjectionType.ALL,
+      });
       tables[tbl] = table;
     }
 
@@ -492,6 +508,14 @@ export class TempleAppInfraCdkStack extends Stack {
     const HttpApiRouteGetUploadUrl = new apigwv2.CfnRoute(this, `${project}HttpApiRouteGetUploadUrl`, {
       apiId: api.ref,
       routeKey: "POST /{orgCode}/get-upload-url",
+      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+    });
+
+    // Per-devotee order lookup via order-devotee-index (Canteen Spend Phase 4).
+    // Paginated (limit/nextToken) per API_PAGINATION_SPEC.md.
+    const HttpApiRouteOrdersByDevotee = new apigwv2.CfnRoute(this, `${project}HttpApiRouteOrdersByDevotee`, {
+      apiId: api.ref,
+      routeKey: "POST /{orgCode}/orders-by-devotee",
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 

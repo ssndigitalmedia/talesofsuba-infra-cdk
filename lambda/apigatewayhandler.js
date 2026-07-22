@@ -1161,6 +1161,58 @@ exports.handler = async function (event, context) {
           break;
         }
 
+        case "/{orgCode}/orders-by-devotee": {
+          // Canteen Spend Phase 4: read ONE devotee's orders directly via the sparse
+          // order-devotee-index (PK devoteeId, SK createdate) instead of scanning all
+          // orders through type-index + email filter. Auth parity with the other
+          // order-read paths (filter2column): enforced at the Next.js proxy.
+          const method = (event.httpMethod || event.requestContext?.http?.method || "").toUpperCase();
+          if (method !== "POST") {
+            statusCode = 405;
+            body = { error: "Method Not Allowed" };
+            break;
+          }
+
+          const odBody = JSON.parse(event.body || "{}");
+          const odDevoteeId = String(odBody.devoteeId || "").trim();
+          if (!odDevoteeId) {
+            statusCode = 400;
+            body = { error: "Missing devoteeId in request body" };
+            break;
+          }
+
+          const odLimit = Math.min(500, Math.max(1, parseInt(odBody.limit, 10) || 100));
+          let odStartKey;
+          if (odBody.nextToken) {
+            try {
+              odStartKey = JSON.parse(Buffer.from(odBody.nextToken, "base64").toString("utf8"));
+            } catch (e) {
+              statusCode = 400;
+              body = { error: "Invalid nextToken" };
+              break;
+            }
+          }
+
+          const odResult = await dynamo.send(
+            new QueryCommand({
+              TableName: tableName,
+              IndexName: "order-devotee-index",
+              KeyConditionExpression: "#did = :did",
+              ExpressionAttributeNames: { "#did": "devoteeId" },
+              ExpressionAttributeValues: { ":did": odDevoteeId },
+              ScanIndexForward: false, // newest first
+              Limit: odLimit,
+              ExclusiveStartKey: odStartKey,
+            }),
+          );
+
+          body = {
+            items: odResult.Items || [],
+            nextToken: odResult.LastEvaluatedKey ? Buffer.from(JSON.stringify(odResult.LastEvaluatedKey)).toString("base64") : null,
+          };
+          break;
+        }
+
         case "/{orgCode}/ocrtextextract": {
           try {
             await verifyJwt("ocrtextextract");
