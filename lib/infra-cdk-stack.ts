@@ -2,6 +2,8 @@ import { Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import { Construct } from "constructs";
+import * as corsConfig from "../cors.config.json";
+import * as envConfig from "../env.config.json";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
@@ -15,20 +17,67 @@ export class TempleAppInfraCdkStack extends Stack {
     super(scope, id, props);
     var project = "temple-";
     var tableNames: string[] = [];
-    const corsOrigins: string[] = ["http://192.168.1.160:3000", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "https://dev-htky.templehub.org", "https://dev-sbht.templehub.org", "https://htky.templehub.org", "https://sbht.templehub.org", "https://htky.org", "https://www.htky.org", "https://templehub.org", "https://dev.templehub.org", "https://qa.templehub.org", "https://www.templehub.org"];
-    ////..................SQS QUEUES................./////////
-    var s3BucketName = "temple";
-    if (`${cdk.Stack.of(this).region}` == "us-east-1") {
-      project = project;
-      tableNames = ["TempleAdmin-", "testtemple-", "temple1-", "temple2-", "temple3-"];
-      s3BucketName = "templepord";
-    } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
-      project = project + "qa-";
-      tableNames = ["TempleAdmin-", "testtemple-", "temple1-", "temple2-", "temple3-"];
-      s3BucketName = "templeqa";
-    } else {
-      return;
+    // Allowed origins live in cors.config.json so a new temple domain is a
+    // one-line data edit, not a code change. EVERY array in that file is
+    // merged, so new groups can be added there without touching this file
+    // (`_readme` is a string[] too, hence the http(s) filter). Consumed by
+    // API Gateway CORS, the S3 CORS rule and the S3 referer policy below.
+    const corsOrigins: string[] = Array.from(
+      new Set(
+        Object.entries(corsConfig as Record<string, unknown>)
+          .filter(([key]) => key !== "_readme")
+          .flatMap(([, value]) => (Array.isArray(value) ? (value as string[]) : []))
+          .map((origin) => String(origin).trim().replace(/\/+$/, "")) // a trailing slash never matches
+          .filter((origin) => /^https?:\/\//.test(origin))
+      )
+    );
+    if (corsOrigins.length === 0) {
+      throw new Error("cors.config.json produced no origins — refusing to deploy a stack that would reject every browser request.");
     }
+    // Per-environment settings (table list, bucket, replica region) live in
+    // env.config.json, keyed by region — adding a temple is a data edit there.
+    type EnvEntry = {
+      label: string;
+      project: string;
+      s3Bucket: string;
+      replicaRegion: string;
+      /** Create Global Table replicas in replicaRegion. false removes them. */
+      replicate?: boolean;
+      /** Region the Lambda uses for DynamoDB. null = its own region (normal). */
+      activeDbRegion?: string | null;
+      tableNames: string[];
+    };
+    const envEntry = (envConfig as unknown as Record<string, EnvEntry>)[this.region];
+    if (!envEntry) {
+      // Previously an unknown region silently `return`ed, producing an empty
+      // stack that looked like a successful deploy. Fail loudly instead.
+      throw new Error(
+        `No entry for region "${this.region}" in env.config.json — add one (or deploy to ${Object.keys(envConfig).filter((k) => k !== "_readme").join(" / ")}).`
+      );
+    }
+    /**
+     * Which region the API Lambda talks to DynamoDB in.
+     *
+     * env.config.json holds the durable answer, so the committed file always
+     * shows where traffic is actually meant to go. DDB_REGION in the deploy
+     * shell overrides it, which is what scripts/ddb-failover.sh flips during an
+     * incident; empty means "use whatever region the Lambda itself runs in".
+     */
+    const activeDbRegion = String(process.env.DDB_REGION ?? envEntry.activeDbRegion ?? "").trim();
+    if (activeDbRegion && activeDbRegion !== this.region && activeDbRegion !== envEntry.replicaRegion) {
+      // A typo here would point every read and write at a table that does not
+      // exist, so it is refused at synth rather than discovered at runtime.
+      throw new Error(
+        `activeDbRegion "${activeDbRegion}" is neither this region (${this.region}) nor its replica (${envEntry.replicaRegion}).`
+      );
+    }
+    if (activeDbRegion && activeDbRegion !== this.region) {
+      console.warn("\x1b[33m%s\x1b[0m", `NOTE: DynamoDB traffic is pinned to ${activeDbRegion}, not ${this.region}.`);
+    }
+
+    var s3BucketName = envEntry.s3Bucket;
+    project = envEntry.project;
+    tableNames = envEntry.tableNames;
     ////..................SQS QUEUES................./////////
     // SQS DLQ
     const queueDlq = new sqs.Queue(this, `${project}DLQ`, {
@@ -52,7 +101,91 @@ export class TempleAppInfraCdkStack extends Stack {
     });
 
     ////..................DynamoDB................/////////
+    //
+    // ── Multi-region (DynamoDB Global Tables) ─────────────────────────────
+    // The replica lives in a DIFFERENT region per environment so QA and PROD
+    // never replicate into each other:
+    //     QA   ap-south-1 (Mumbai)   ->  ap-southeast-1 (Singapore)  ~55ms
+    //     PROD us-east-1  (Virginia) ->  us-west-2      (Oregon)     ~65ms
+    //
+    // WHY `dynamodb.Table` + `replicationRegions` and NOT `TableV2`:
+    // TableV2 is a different CloudFormation resource type
+    // (AWS::DynamoDB::GlobalTable vs AWS::DynamoDB::Table). Switching these
+    // EXISTING tables to it would make CloudFormation delete and recreate
+    // them — data loss. `replicationRegions` adds the replica in place via an
+    // UpdateTable call, with no replacement and no downtime.
+    //
+    // Streams are a hard prerequisite for replication, and adding one is also
+    // an in-place update.
+    //
+    // NOTE: Global Tables is replication, NOT backup — it copies deletes and
+    // corruption to every replica instantly. `pointInTimeRecovery` below is
+    // the actual protection against bad data, which is why it is on even
+    // where replication is off.
+    const isProd = process.env.ENV === "PROD";
+    const replicaRegion = envEntry.replicaRegion;
+    // Replication is declared per region in env.config.json, so the flag lives
+    // in the same block as the region it arms. That is what keeps QA and PROD
+    // independent: `ENV` is flipped in .env.local, and a single shared flag left
+    // at "true" after QA testing would have armed PROD the moment ENV changed.
+    // Keyed by region, that cannot happen — and the committed file now shows
+    // which environments replicate, which a gitignored .env.local never did.
+    //
+    // REPLICATE_QA / REPLICATE_PROD still override, for a one-off deploy
+    // without editing the file.
+    const replicationOverride = isProd ? process.env.REPLICATE_PROD : process.env.REPLICATE_QA;
+    const hasOverride = replicationOverride !== undefined && String(replicationOverride).trim() !== "";
+    const enableReplication = hasOverride
+      ? String(replicationOverride).trim().toLowerCase() === "true"
+      : envEntry.replicate === true;
+    if (hasOverride) {
+      console.warn("\x1b[33m%s\x1b[0m", `NOTE: env.config.json replicate=${envEntry.replicate === true} overridden to ${enableReplication}.`);
+    }
+    if (activeDbRegion === replicaRegion && !enableReplication) {
+      // Pointing the Lambda at a replica while replication is off would delete
+      // that replica and send every read and write to a table that no longer
+      // exists. The two settings are only coherent together.
+      throw new Error(
+        `activeDbRegion is "${replicaRegion}" but replicate is false — that would remove the very table the Lambda is being pointed at. Set replicate: true, or clear activeDbRegion.`
+      );
+    }
+    if (!enableReplication) {
+      // Replicas are removed, not just left alone, when this goes false — worth
+      // saying out loud, because the deploy log looks routine either way.
+      console.warn("\x1b[33m%s\x1b[0m", `NOTE: replication OFF for ${this.region}. Any existing replica in ${replicaRegion} will be REMOVED.`);
+    }
+    // Never list the region we are deploying INTO — DynamoDB rejects that.
+    const replicationRegions =
+      enableReplication && replicaRegion !== this.region ? [replicaRegion] : undefined;
+
+    /** Shared resilience settings for every table in this stack. */
+    const tableResilience = {
+      // Restore any point in the last 35 days; independent of replication.
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+      // A `cdk destroy` must never take the data with it.
+      removalPolicy: RemovalPolicy.RETAIN,
+      // Required by Global Tables; harmless when replication is off.
+      stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
+      ...(replicationRegions ? { replicationRegions } : {}),
+    };
+
     const tables: { [key: string]: dynamodb.Table } = {};
+    // Replica creation is a DynamoDB CONTROL-PLANE operation and only a couple
+    // may run at once per account/region — creating all six together fails with
+    // "TooManyRequestsException: Rate Exceeded".
+    //
+    // So the replicas are chained to run ONE AT A TIME. Critically the chain is
+    // between the replica resources ONLY, not whole table constructs: CDK also
+    // attaches a per-table IAM policy granting the replica provider
+    // DescribeTable, and making those wait behind the previous replica left no
+    // time for IAM to propagate — the provider then failed with "not authorized
+    // to perform: dynamodb:DescribeTable". Policies are cheap and unthrottled,
+    // so they are all created up front, in parallel, while only the replicas
+    // queue.
+    const replicaNodes: Construct[] = [];
+    /** The Replica<region> child CDK adds to a table when replicationRegions is set. */
+    const replicaOf = (t: dynamodb.Table): Construct | undefined =>
+      t.node.tryFindChild(`Replica${replicaRegion}`) as Construct | undefined;
     for (const tbl of tableNames) {
       const table = new dynamodb.Table(this, `${tbl}event-table`, {
         partitionKey: {
@@ -61,6 +194,7 @@ export class TempleAppInfraCdkStack extends Stack {
         },
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
         tableName: `${tbl}EventTable`,
+        ...tableResilience,
       });
       table.addGlobalSecondaryIndex({
         indexName: "type-index",
@@ -98,6 +232,12 @@ export class TempleAppInfraCdkStack extends Stack {
         },
         projectionType: dynamodb.ProjectionType.ALL,
       });
+      const replica = replicationRegions ? replicaOf(table) : undefined;
+      if (replica) {
+        const previous = replicaNodes[replicaNodes.length - 1];
+        if (previous) replica.node.addDependency(previous);
+        replicaNodes.push(replica);
+      }
       tables[tbl] = table;
     }
 
@@ -116,7 +256,13 @@ export class TempleAppInfraCdkStack extends Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       timeToLiveAttribute: "ttl",
       tableName: `${project}audit-logs`,
+      ...tableResilience,
     });
+    // Same reason as above — the last replica must not start until the 5th is done.
+    const auditReplica = replicationRegions ? replicaOf(auditLogsTable) : undefined;
+    if (auditReplica && replicaNodes.length > 0) {
+      auditReplica.node.addDependency(replicaNodes[replicaNodes.length - 1]);
+    }
 
     ////..................S3 Bucket for Book Covers (Imported)................/////////
     const templeBucketName = s3.Bucket.fromBucketName(this, `${project}TempleBucket`, s3BucketName);
@@ -154,13 +300,37 @@ export class TempleAppInfraCdkStack extends Stack {
     // collect all table ARNs dynamically
     const allTableArns: string[] = [];
 
+    /** The same table, addressed in the replica region. */
+    const replicaArn = (tableName: string, suffix = "") =>
+      cdk.Arn.format(
+        { service: "dynamodb", region: replicaRegion, resource: "table", resourceName: `${tableName}${suffix}` },
+        this,
+      );
+
+    /**
+     * Grant a table in BOTH regions, unconditionally — even when replication is
+     * switched off. An ARN for a table that does not exist yet is inert, and
+     * having the permission already in place means a manual failover is an
+     * env-var flip rather than an IAM deploy in the middle of an outage.
+     *
+     * `table.tableArn` is a CloudFormation token, not a literal string, so the
+     * replica ARN has to be built structurally. Replacing the region substring
+     * inside a token silently yields the primary ARN back.
+     */
+    const grantBothRegions = (table: dynamodb.ITable, withIndexes: boolean) => {
+      allTableArns.push(table.tableArn);
+      if (withIndexes) allTableArns.push(`${table.tableArn}/index/*`);
+      if (replicaRegion && replicaRegion !== this.region) {
+        allTableArns.push(replicaArn(table.tableName));
+        if (withIndexes) allTableArns.push(replicaArn(table.tableName, "/index/*"));
+      }
+    };
+
     for (const tbl of tableNames) {
-      const table = tables[tbl];
-      allTableArns.push(table.tableArn); // main table
-      allTableArns.push(`${table.tableArn}/index/*`); // GSI index
+      grantBothRegions(tables[tbl], true); // table + its GSIs
     }
     // grant the Lambda read/write on the audit-logs table
-    allTableArns.push(auditLogsTable.tableArn);
+    grantBothRegions(auditLogsTable, false); // no GSIs on the audit table
     APIGatewayHandlerLambdaExecutionRole.attachInlinePolicy(
       new iam.Policy(this, `${project}APIGatewayHandlerInlinePolicy`, {
         statements: [
@@ -240,6 +410,10 @@ export class TempleAppInfraCdkStack extends Stack {
       timeout: Duration.seconds(60),
       environment: {
         ADMIN_TABLE: tables["TempleAdmin-"].tableName,
+        // Manual regional failover, from env.config.json's activeDbRegion.
+        // Empty (the default) means the handler talks to DynamoDB in its own
+        // region. See scripts/ddb-failover.sh for the break-glass path.
+        DDB_REGION: activeDbRegion,
         AUDIT_LOG_TABLE: auditLogsTable.tableName,
         SECURE_DOCS_BUCKET: secureDocsBucket.bucketName,
         PLATFORM_ARN_IOS: "arn:aws:sns:us-east-1:287190273383:app/APNS/TempleHub_Apple_PushNotification",

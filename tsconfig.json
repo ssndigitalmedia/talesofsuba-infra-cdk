@@ -9,6 +9,7 @@
     //"outDir": "./bin",
     "declaration": true,
     "strict": true,
+    "resolveJsonModule": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,

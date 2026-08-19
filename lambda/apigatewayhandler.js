@@ -1,6 +1,9 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, PutCommand, UpdateCommand, GetCommand, DeleteCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
-const client = new DynamoDBClient({});
+// No region set means the SDK falls back to AWS_REGION, i.e. the region this
+// Lambda runs in. DDB_REGION overrides that for a manual cross-region failover;
+// it is empty in normal operation.
+const client = new DynamoDBClient(process.env.DDB_REGION ? { region: process.env.DDB_REGION } : {});
 const dynamo = DynamoDBDocumentClient.from(client);
 const { GetSecretValueCommand, SecretsManagerClient } = require("@aws-sdk/client-secrets-manager");
 const { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
@@ -95,6 +98,31 @@ async function callGemini(model, contents, generationConfig, apiVersion = "v1bet
 }
 
 // Helper to send push notification to a specific device
+/**
+ * Collapse `userdevice` rows that are really the same phone.
+ *
+ * The row id scheme changed from `userdevice-<email>` to
+ * `userdevice-<org>-<email>-<tokenSuffix>`, so re-registering an existing
+ * device writes a NEW row instead of overwriting the old one. Both rows carry
+ * the same APNs/FCM token, and the push handlers send one notification per row
+ * — which is why a single device receives the same alert twice.
+ *
+ * The token is the device's real identity, so collapse on that and keep the
+ * most recently registered row (its endpointArn is the one still valid).
+ */
+function dedupeDevices(devices) {
+  const byDevice = new Map();
+  for (const d of devices) {
+    const key = d.token || d.endpointArn || d.id;
+    if (!key) continue;
+    const seen = byDevice.get(key);
+    if (!seen || String(d.createddate || "") > String(seen.createddate || "")) {
+      byDevice.set(key, d);
+    }
+  }
+  return Array.from(byDevice.values());
+}
+
 async function sendPushNotification(device, alertmessage, tableName) {
   let endpointArn = device.endpointArn;
 
@@ -925,7 +953,7 @@ exports.handler = async function (event, context) {
             break;
           }
 
-          const publishPromises = devices.map((device) => sendPushNotification(device, alertmessage, tableName));
+          const publishPromises = dedupeDevices(devices).map((device) => sendPushNotification(device, alertmessage, tableName));
 
           await Promise.all(publishPromises);
           body = { message: "Notification sent" };
@@ -960,14 +988,15 @@ exports.handler = async function (event, context) {
           // Filter by email in memory (case-insensitive)
           const userDevices = userDevicesResult.Items ? userDevicesResult.Items.filter((device) => device.email && targetEmail && device.email.toLowerCase() === targetEmail.toLowerCase()) : [];
 
-          console.log(`Found ${userDevices.length} devices for user ${targetEmail}`);
+          const uniqueUserDevices = dedupeDevices(userDevices);
+          console.log(`Found ${userDevices.length} device rows for user ${targetEmail}, ${uniqueUserDevices.length} unique device(s)`);
 
-          if (userDevices.length === 0) {
+          if (uniqueUserDevices.length === 0) {
             body = { message: `No devices found for user ${targetEmail}` };
             break;
           }
 
-          const userPushPromises = userDevices.map((device) => sendPushNotification(device, targetMessage, tableName));
+          const userPushPromises = uniqueUserDevices.map((device) => sendPushNotification(device, targetMessage, tableName));
 
           await Promise.all(userPushPromises);
           body = { message: `Notification sent to user ${targetEmail}` };

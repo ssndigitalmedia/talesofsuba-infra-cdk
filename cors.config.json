@@ -1,0 +1,35 @@
+{
+  "_readme": [
+    "Origins allowed to call the API and read from S3.",
+    "Used in THREE places by lib/infra-cdk-stack.ts: API Gateway CORS,",
+    "the S3 bucket CORS rule, and the S3 bucket-policy aws:Referer condition.",
+    "Add a new temple's domains under 'temples'. Group names are free-form —",
+    "every array in this file is merged, so you can add new groups without",
+    "touching the stack code. Origins must NOT have a trailing slash.",
+    "Redeploy the CDK stack for changes to take effect."
+  ],
+
+  "local": [
+    "http://192.168.1.160:3000",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "http://localhost:3003"
+  ],
+
+  "templehub": [
+    "https://templehub.org",
+    "https://www.templehub.org",
+    "https://dev.templehub.org",
+    "https://qa.templehub.org"
+  ],
+
+  "temples": [
+    "https://dev-htky.templehub.org",
+    "https://dev-sbht.templehub.org",
+    "https://htky.templehub.org",
+    "https://sbht.templehub.org",
+    "https://htky.org",
+    "https://www.htky.org"
+  ]
+}
