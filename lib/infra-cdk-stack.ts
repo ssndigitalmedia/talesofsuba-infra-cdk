@@ -141,6 +141,27 @@ export class TempleAppInfraCdkStack extends Stack {
     if (hasOverride) {
       console.warn("\x1b[33m%s\x1b[0m", `NOTE: env.config.json replicate=${envEntry.replicate === true} overridden to ${enableReplication}.`);
     }
+    // QA and PROD deploy the SAME table names into different regions. That is
+    // fine for standalone tables, but a Global Table name is claimed across ALL
+    // regions at once, so `TempleAdmin-EventTable` cannot be a global table in
+    // both environments. Without this check the clash only surfaces mid-deploy,
+    // as "Global table with name ... already exists with replicas in regions",
+    // after the stack has already started rolling forward.
+    if (enableReplication) {
+      const clash = Object.entries(envConfig as unknown as Record<string, EnvEntry>)
+        .filter(([region, entry]) => region !== "_readme" && region !== this.region && entry?.replicate === true)
+        .map(([region, entry]) => ({ region, shared: (entry.tableNames || []).filter((t) => tableNames.includes(t)) }))
+        .filter((c) => c.shared.length > 0);
+      if (clash.length > 0) {
+        const { region: other, shared } = clash[0];
+        throw new Error(
+          `Cannot replicate from ${this.region}: ${other} already has replicate: true and shares table name(s) ${shared.join(", ")}. ` +
+          `A Global Table name is global, so only one environment can replicate a given table at a time. ` +
+          `Set replicate: false for ${other} and deploy that region first, or give the environments distinct table names.`
+        );
+      }
+    }
+
     if (activeDbRegion === replicaRegion && !enableReplication) {
       // Pointing the Lambda at a replica while replication is off would delete
       // that replica and send every read and write to a table that no longer
