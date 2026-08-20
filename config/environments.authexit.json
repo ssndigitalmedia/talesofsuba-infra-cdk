@@ -1,0 +1,36 @@
+{
+  "qa": {
+    "account": "287190273383",
+    "otheraccount": "949365052778",
+    "region": "ap-south-1",
+    "project": "AuthExit-qa-",
+    "s3BucketName": "authexitqa",
+    "corsOrigins": [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "https://qa.authexit.org",
+      "https://dev.authexit.org",
+      "https://authexit.org",
+      "https://www.authexit.org"
+    ],
+    "schoolNames": ["AuthExitAdmin-", "testschool-", "school2", "school3", "school4"]
+  },
+  "prod": {
+    "account": "287190273383",
+    "otheraccount": "949365052778",
+    "region": "us-east-1",
+    "project": "AuthExit-",
+    "s3BucketName": "authexit",
+    "corsOrigins": [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "https://qa.authexit.org",
+      "https://dev.authexit.org",
+      "https://authexit.org",
+      "https://www.authexit.org"
+    ],
+    "schoolNames": ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4", "school5", "school6", "school7", "school8"]
+  }
+}

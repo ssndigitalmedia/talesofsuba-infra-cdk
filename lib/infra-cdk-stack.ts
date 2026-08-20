@@ -10,33 +10,25 @@ import * as eventsources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cdk from "aws-cdk-lib/core";
 
+// Per-environment (qa/prod) config, loaded from config/environments.authexit.json in bin.
+export interface EnvConfig {
+  account: string;
+  region: string;
+  project: string;
+  s3BucketName: string;
+  corsOrigins: string[];
+  schoolNames: string[];
+}
+
+export interface AuthExitAppInfraCdkStackProps extends StackProps {
+  config: EnvConfig;
+}
+
 export class AuthExitAppInfraCdkStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: AuthExitAppInfraCdkStackProps) {
     super(scope, id, props);
-    //var project = "FaceCheckInApp-";
-    //var project = "SplitEqualApp-";
-    var project = "AuthExit-";
-    var schoolNames: string[] = [];
-    //const schoolNames = ["tal-", "school1", "school2", "school3"];
-    //var project = "RecipeAIApp-";
-    // var project = "TalesOfSuba-";
-    // var project = "KnowUrCircle-";
-    // var project = "SSNDigitalMedia-";
-    // Could be per environment
-    const corsOrigins: string[] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://qa.authexit.org", "https://dev.authexit.org", "https://authexit.org", "https://www.authexit.org"];
-    ////..................SQS QUEUES................./////////
-    var s3BucketName = "authexit";
-    if (`${cdk.Stack.of(this).region}` == "us-east-1") {
-      project = project;
-      schoolNames = ["AuthExitAdmin-", "tal-", "testschool-", "school2", "school3", "school4", "school5", "school6", "school7", "school8"];
-      s3BucketName = "authexit";
-    } else if (`${cdk.Stack.of(this).region}` == "ap-south-1") {
-      project = project + "qa-";
-      schoolNames = ["AuthExitAdmin-", "testschool-", "school2", "school3", "school4"];
-      s3BucketName = "authexitqa";
-    } else {
-      return;
-    }
+    // All non-secret, per-environment values come from config/environments.authexit.json.
+    const { project, s3BucketName, corsOrigins, schoolNames } = props.config;
     ////..................SQS QUEUES................./////////
     // SQS DLQ
     const queueDlq = new sqs.Queue(this, `${project}DLQ`, {
@@ -177,7 +169,9 @@ export class AuthExitAppInfraCdkStack extends Stack {
         S3_REGION: `${cdk.Stack.of(this).region}`,
         BUCKET_URL: `https://${bookCoverBucket.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com`,
         JWT_SECRET: (() => {
-          const secret = process.env.JWT_SECRET;
+          // Choose the JWT secret by region (prod vs QA). Region is set from ENV in bin/.
+          const region = `${cdk.Stack.of(this).region}`;
+          const secret = region === "us-east-1" ? process.env.JWT_SECRET_PROD : process.env.JWT_SECRET_QA;
           if (!secret) {
             console.warn("\x1b[33m%s\x1b[0m", "WARNING: JWT_SECRET environment variable is not set. Using default secret - THIS IS INSECURE!");
           }
