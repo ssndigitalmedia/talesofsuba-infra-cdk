@@ -3,7 +3,7 @@
 
   "local": ["http://192.168.1.160:3000", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://localhost:3004"],
 
-  "templehub": ["https://templehub.org", "https://www.templehub.org", "https://dev.templehub.org", "https://qa.templehub.org", "https://qapanchangam.templehub.org", "https://panchangam.templehub.org", "https://qa.d2okk7piyx7238.amplifyapp.com", "https://prod.d2okk7piyx7238.amplifyapp.com"],
+  "templehub": ["https://templehub.org", "https://www.templehub.org", "https://dev.templehub.org", "https://qa.templehub.org", "https://qa.panchangamdaily.com", "https://panchangamdaily.com", "https://qa.d2okk7piyx7238.amplifyapp.com", "https://prod.d2okk7piyx7238.amplifyapp.com"],
 
   "temples": ["https://dev-htky.templehub.org", "https://dev-sbht.templehub.org", "https://htky.templehub.org", "https://sbht.templehub.org", "https://htky.org", "https://www.htky.org"]
 }
