@@ -12,11 +12,9 @@ import * as eventsources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as cdk from "aws-cdk-lib/core";
 
-export class TempleAppInfraCdkStack extends Stack {
+export class PanchangamAppInfraCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-    var project = "temple-";
-    var tableNames: string[] = [];
     // Allowed origins live in cors.config.json so a new temple domain is a
     // one-line data edit, not a code change. EVERY array in that file is
     // merged, so new groups can be added there without touching this file
@@ -28,8 +26,8 @@ export class TempleAppInfraCdkStack extends Stack {
           .filter(([key]) => key !== "_readme")
           .flatMap(([, value]) => (Array.isArray(value) ? (value as string[]) : []))
           .map((origin) => String(origin).trim().replace(/\/+$/, "")) // a trailing slash never matches
-          .filter((origin) => /^https?:\/\//.test(origin))
-      )
+          .filter((origin) => /^https?:\/\//.test(origin)),
+      ),
     );
     if (corsOrigins.length === 0) {
       throw new Error("cors.config.json produced no origins — refusing to deploy a stack that would reject every browser request.");
@@ -45,6 +43,18 @@ export class TempleAppInfraCdkStack extends Stack {
       replicate?: boolean;
       /** Region the Lambda uses for DynamoDB. null = its own region (normal). */
       activeDbRegion?: string | null;
+      /**
+       * Whether this stack manages S3 buckets (the imported book-cover bucket +
+       * the private secure-docs bucket). Defaults to true. Set false for
+       * projects that don't use S3 (e.g. panchangam) to skip all S3 resources.
+       */
+      createS3Bucket?: boolean;
+      /**
+       * Whether to create the dedicated audit-logs table (+ its route/IAM).
+       * Defaults to true. Set false for projects that don't need it (e.g.
+       * panchangam) so only the tables listed in tableNames are created.
+       */
+      createAuditLogTable?: boolean;
       tableNames: string[];
     };
     const envEntry = (envConfig as unknown as Record<string, EnvEntry>)[this.region];
@@ -52,7 +62,9 @@ export class TempleAppInfraCdkStack extends Stack {
       // Previously an unknown region silently `return`ed, producing an empty
       // stack that looked like a successful deploy. Fail loudly instead.
       throw new Error(
-        `No entry for region "${this.region}" in env.config.json — add one (or deploy to ${Object.keys(envConfig).filter((k) => k !== "_readme").join(" / ")}).`
+        `No entry for region "${this.region}" in env.config.json — add one (or deploy to ${Object.keys(envConfig)
+          .filter((k) => k !== "_readme")
+          .join(" / ")}).`,
       );
     }
     /**
@@ -67,17 +79,15 @@ export class TempleAppInfraCdkStack extends Stack {
     if (activeDbRegion && activeDbRegion !== this.region && activeDbRegion !== envEntry.replicaRegion) {
       // A typo here would point every read and write at a table that does not
       // exist, so it is refused at synth rather than discovered at runtime.
-      throw new Error(
-        `activeDbRegion "${activeDbRegion}" is neither this region (${this.region}) nor its replica (${envEntry.replicaRegion}).`
-      );
+      throw new Error(`activeDbRegion "${activeDbRegion}" is neither this region (${this.region}) nor its replica (${envEntry.replicaRegion}).`);
     }
     if (activeDbRegion && activeDbRegion !== this.region) {
       console.warn("\x1b[33m%s\x1b[0m", `NOTE: DynamoDB traffic is pinned to ${activeDbRegion}, not ${this.region}.`);
     }
 
-    var s3BucketName = envEntry.s3Bucket;
-    project = envEntry.project;
-    tableNames = envEntry.tableNames;
+    const s3BucketName = envEntry.s3Bucket;
+    const project = envEntry.project;
+    const tableNames = envEntry.tableNames;
     ////..................SQS QUEUES................./////////
     // SQS DLQ
     const queueDlq = new sqs.Queue(this, `${project}DLQ`, {
@@ -135,9 +145,7 @@ export class TempleAppInfraCdkStack extends Stack {
     // without editing the file.
     const replicationOverride = isProd ? process.env.REPLICATE_PROD : process.env.REPLICATE_QA;
     const hasOverride = replicationOverride !== undefined && String(replicationOverride).trim() !== "";
-    const enableReplication = hasOverride
-      ? String(replicationOverride).trim().toLowerCase() === "true"
-      : envEntry.replicate === true;
+    const enableReplication = hasOverride ? String(replicationOverride).trim().toLowerCase() === "true" : envEntry.replicate === true;
     if (hasOverride) {
       console.warn("\x1b[33m%s\x1b[0m", `NOTE: env.config.json replicate=${envEntry.replicate === true} overridden to ${enableReplication}.`);
     }
@@ -154,11 +162,7 @@ export class TempleAppInfraCdkStack extends Stack {
         .filter((c) => c.shared.length > 0);
       if (clash.length > 0) {
         const { region: other, shared } = clash[0];
-        throw new Error(
-          `Cannot replicate from ${this.region}: ${other} already has replicate: true and shares table name(s) ${shared.join(", ")}. ` +
-          `A Global Table name is global, so only one environment can replicate a given table at a time. ` +
-          `Set replicate: false for ${other} and deploy that region first, or give the environments distinct table names.`
-        );
+        throw new Error(`Cannot replicate from ${this.region}: ${other} already has replicate: true and shares table name(s) ${shared.join(", ")}. ` + `A Global Table name is global, so only one environment can replicate a given table at a time. ` + `Set replicate: false for ${other} and deploy that region first, or give the environments distinct table names.`);
       }
     }
 
@@ -166,9 +170,7 @@ export class TempleAppInfraCdkStack extends Stack {
       // Pointing the Lambda at a replica while replication is off would delete
       // that replica and send every read and write to a table that no longer
       // exists. The two settings are only coherent together.
-      throw new Error(
-        `activeDbRegion is "${replicaRegion}" but replicate is false — that would remove the very table the Lambda is being pointed at. Set replicate: true, or clear activeDbRegion.`
-      );
+      throw new Error(`activeDbRegion is "${replicaRegion}" but replicate is false — that would remove the very table the Lambda is being pointed at. Set replicate: true, or clear activeDbRegion.`);
     }
     if (!enableReplication) {
       // Replicas are removed, not just left alone, when this goes false — worth
@@ -176,8 +178,7 @@ export class TempleAppInfraCdkStack extends Stack {
       console.warn("\x1b[33m%s\x1b[0m", `NOTE: replication OFF for ${this.region}. Any existing replica in ${replicaRegion} will be REMOVED.`);
     }
     // Never list the region we are deploying INTO — DynamoDB rejects that.
-    const replicationRegions =
-      enableReplication && replicaRegion !== this.region ? [replicaRegion] : undefined;
+    const replicationRegions = enableReplication && replicaRegion !== this.region ? [replicaRegion] : undefined;
 
     /** Shared resilience settings for every table in this stack. */
     const tableResilience = {
@@ -205,8 +206,7 @@ export class TempleAppInfraCdkStack extends Stack {
     // queue.
     const replicaNodes: Construct[] = [];
     /** The Replica<region> child CDK adds to a table when replicationRegions is set. */
-    const replicaOf = (t: dynamodb.Table): Construct | undefined =>
-      t.node.tryFindChild(`Replica${replicaRegion}`) as Construct | undefined;
+    const replicaOf = (t: dynamodb.Table): Construct | undefined => t.node.tryFindChild(`Replica${replicaRegion}`) as Construct | undefined;
     for (const tbl of tableNames) {
       const table = new dynamodb.Table(this, `${tbl}event-table`, {
         partitionKey: {
@@ -265,52 +265,68 @@ export class TempleAppInfraCdkStack extends Stack {
     ////..................Audit Logs Table................/////////
     // Dedicated table for audit-log entries: PK orgCode, SK timestamp (ISO-8601),
     // on-demand billing, with TTL on the numeric `ttl` (epoch seconds) attribute.
-    const auditLogsTable = new dynamodb.Table(this, `${project}audit-logs-table`, {
-      partitionKey: {
-        name: "orgCode",
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: "timestamp",
-        type: dynamodb.AttributeType.STRING,
-      },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      timeToLiveAttribute: "ttl",
-      tableName: `${project}audit-logs`,
-      ...tableResilience,
-    });
+    // Controlled by env.config.json's createAuditLogTable (default true). When
+    // false (e.g. panchangam) only the tables in tableNames are created.
+    const createAuditLogTable = envEntry.createAuditLogTable !== false;
+    const auditLogsTable = createAuditLogTable
+      ? new dynamodb.Table(this, `${project}audit-logs-table`, {
+          partitionKey: {
+            name: "orgCode",
+            type: dynamodb.AttributeType.STRING,
+          },
+          sortKey: {
+            name: "timestamp",
+            type: dynamodb.AttributeType.STRING,
+          },
+          billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+          timeToLiveAttribute: "ttl",
+          tableName: `${project}audit-logs`,
+          ...tableResilience,
+        })
+      : undefined;
     // Same reason as above — the last replica must not start until the 5th is done.
-    const auditReplica = replicationRegions ? replicaOf(auditLogsTable) : undefined;
+    const auditReplica = auditLogsTable && replicationRegions ? replicaOf(auditLogsTable) : undefined;
     if (auditReplica && replicaNodes.length > 0) {
       auditReplica.node.addDependency(replicaNodes[replicaNodes.length - 1]);
     }
 
-    ////..................S3 Bucket for Book Covers (Imported)................/////////
-    const templeBucketName = s3.Bucket.fromBucketName(this, `${project}TempleBucket`, s3BucketName);
+    ////..................S3 Buckets................/////////
+    // Controlled by env.config.json's createS3Bucket (default true). When false
+    // (e.g. panchangam) all S3 resources below are skipped.
+    const createS3Bucket = envEntry.createS3Bucket !== false;
+
+    // Book-cover bucket: this is IMPORTED, not created — CDK only references an
+    // existing bucket by name. So if you enable S3 you must CREATE the bucket
+    // (`s3Bucket` in env.config.json, e.g. "panchangamqa") MANUALLY in S3 first;
+    // otherwise the bucket-policy attach below fails at deploy with NoSuchBucket.
+    const templeBucketName = createS3Bucket ? s3.Bucket.fromBucketName(this, `${project}TempleBucket`, s3BucketName) : undefined;
 
     ////..................Secure Documents Bucket (private)................/////////
     // Private bucket for sensitive uploads (checks, payment/PayPal screenshots, etc.).
     // Fully blocked from public access — objects are served ONLY via short-lived
     // presigned URLs generated by the Lambda after JWT verification.
-    const secureDocsBucket = new s3.Bucket(this, `${project}secure-docs-bucket`, {
-      bucketName: `${project}secure-docs`,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
-      versioned: true,
-      removalPolicy: RemovalPolicy.RETAIN,
-      // Allow the browser to PUT (presigned upload for large files, e.g. newsletters)
-      // and GET (presigned view) directly against the bucket from our web origins.
-      cors: [
-        {
-          allowedMethods: [s3.HttpMethods.PUT, s3.HttpMethods.GET, s3.HttpMethods.HEAD],
-          allowedOrigins: corsOrigins,
-          allowedHeaders: ["*"],
-          exposedHeaders: ["ETag"],
-          maxAge: 3000,
-        },
-      ],
-    });
+    // (This one IS created by CDK, unlike the imported book-cover bucket above.)
+    const secureDocsBucket = createS3Bucket
+      ? new s3.Bucket(this, `${project}secure-docs-bucket`, {
+          bucketName: `${project}secure-docs`,
+          blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+          encryption: s3.BucketEncryption.S3_MANAGED,
+          enforceSSL: true,
+          versioned: true,
+          removalPolicy: RemovalPolicy.RETAIN,
+          // Allow the browser to PUT (presigned upload for large files, e.g. newsletters)
+          // and GET (presigned view) directly against the bucket from our web origins.
+          cors: [
+            {
+              allowedMethods: [s3.HttpMethods.PUT, s3.HttpMethods.GET, s3.HttpMethods.HEAD],
+              allowedOrigins: corsOrigins,
+              allowedHeaders: ["*"],
+              exposedHeaders: ["ETag"],
+              maxAge: 3000,
+            },
+          ],
+        })
+      : undefined;
 
     ////..................Roles................/////////
 
@@ -322,11 +338,7 @@ export class TempleAppInfraCdkStack extends Stack {
     const allTableArns: string[] = [];
 
     /** The same table, addressed in the replica region. */
-    const replicaArn = (tableName: string, suffix = "") =>
-      cdk.Arn.format(
-        { service: "dynamodb", region: replicaRegion, resource: "table", resourceName: `${tableName}${suffix}` },
-        this,
-      );
+    const replicaArn = (tableName: string, suffix = "") => cdk.Arn.format({ service: "dynamodb", region: replicaRegion, resource: "table", resourceName: `${tableName}${suffix}` }, this);
 
     /**
      * Grant a table in BOTH regions, unconditionally — even when replication is
@@ -351,7 +363,9 @@ export class TempleAppInfraCdkStack extends Stack {
       grantBothRegions(tables[tbl], true); // table + its GSIs
     }
     // grant the Lambda read/write on the audit-logs table
-    grantBothRegions(auditLogsTable, false); // no GSIs on the audit table
+    if (auditLogsTable) {
+      grantBothRegions(auditLogsTable, false); // no GSIs on the audit table
+    }
     APIGatewayHandlerLambdaExecutionRole.attachInlinePolicy(
       new iam.Policy(this, `${project}APIGatewayHandlerInlinePolicy`, {
         statements: [
@@ -375,15 +389,23 @@ export class TempleAppInfraCdkStack extends Stack {
             actions: ["sns:Publish", "sns:CreatePlatformEndpoint", "sns:SetEndpointAttributes", "sns:DeleteEndpoint"],
             resources: ["*", "arn:aws:sns:us-east-1:287190273383:app/APNS/Temple_Apple_PushNotification", "arn:aws:sns:us-east-1:287190273383:app/GCM/Temple_Android_PushNotification", "arn:aws:sns:us-east-1:287190273383:endpoint/APNS/Temple_Apple_PushNotification/*", "arn:aws:sns:us-east-1:287190273383:endpoint/GCM/Temple_Android_PushNotification/*"],
           }),
-          new iam.PolicyStatement({
-            actions: ["s3:PutObject", "s3:DeleteObject"],
-            resources: [templeBucketName.arnForObjects("*")],
-          }),
+          ...(templeBucketName
+            ? [
+                new iam.PolicyStatement({
+                  actions: ["s3:PutObject", "s3:DeleteObject"],
+                  resources: [templeBucketName.arnForObjects("*")],
+                }),
+              ]
+            : []),
           // Private secure-docs bucket: read + write (GetObject needed for presigning)
-          new iam.PolicyStatement({
-            actions: ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
-            resources: [secureDocsBucket.arnForObjects("*")],
-          }),
+          ...(secureDocsBucket
+            ? [
+                new iam.PolicyStatement({
+                  actions: ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
+                  resources: [secureDocsBucket.arnForObjects("*")],
+                }),
+              ]
+            : []),
           // Textract for OCR extraction (no resource-level permissions supported)
           new iam.PolicyStatement({
             actions: ["textract:AnalyzeDocument", "textract:DetectDocumentText"],
@@ -430,18 +452,21 @@ export class TempleAppInfraCdkStack extends Stack {
       role: APIGatewayHandlerLambdaExecutionRole,
       timeout: Duration.seconds(60),
       environment: {
-        ADMIN_TABLE: tables["TempleAdmin-"].tableName,
+        // Optional: only set when a "TempleAdmin-" table is listed in
+        // env.config.json's tableNames. When it isn't, the admin table is not
+        // created and ADMIN_TABLE is left empty (admin routes are unused here).
+        ADMIN_TABLE: tables["TempleAdmin-"]?.tableName ?? "",
         // Manual regional failover, from env.config.json's activeDbRegion.
         // Empty (the default) means the handler talks to DynamoDB in its own
         // region. See scripts/ddb-failover.sh for the break-glass path.
         DDB_REGION: activeDbRegion,
-        AUDIT_LOG_TABLE: auditLogsTable.tableName,
-        SECURE_DOCS_BUCKET: secureDocsBucket.bucketName,
+        AUDIT_LOG_TABLE: auditLogsTable?.tableName ?? "",
+        SECURE_DOCS_BUCKET: secureDocsBucket?.bucketName ?? "",
         PLATFORM_ARN_IOS: "arn:aws:sns:us-east-1:287190273383:app/APNS/TempleHub_Apple_PushNotification",
         PLATFORM_ARN_ANDROID: "arn:aws:sns:us-east-1:287190273383:app/GCM/TempleHub_Android_PushNotification",
-        BUCKET_NAME: templeBucketName.bucketName,
+        BUCKET_NAME: templeBucketName?.bucketName ?? "",
         S3_REGION: `${cdk.Stack.of(this).region}`,
-        BUCKET_URL: `https://${templeBucketName.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com`,
+        BUCKET_URL: templeBucketName ? `https://${templeBucketName.bucketName}.s3.${cdk.Stack.of(this).region}.amazonaws.com` : "",
         JWT_SECRET: jwtSecret,
         GEMINI_API_KEY: (() => {
           const key = process.env.GEMINI_API_KEY;
@@ -461,48 +486,51 @@ export class TempleAppInfraCdkStack extends Stack {
       },
     });
 
-    // S3 Bucket Policy for the imported bucket
-    new s3.CfnBucketPolicy(this, `${project}TempleBucketPolicy`, {
-      bucket: templeBucketName.bucketName,
-      policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Sid: "AllowLambdaS3Management",
-            Effect: "Allow",
-            Principal: {
-              AWS: APIGatewayHandlerLambdaExecutionRole.roleArn,
+    // S3 Bucket Policy for the imported bucket (only when S3 is enabled and the
+    // bucket has been created manually — see the import note above).
+    if (templeBucketName) {
+      new s3.CfnBucketPolicy(this, `${project}TempleBucketPolicy`, {
+        bucket: templeBucketName.bucketName,
+        policyDocument: {
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Sid: "AllowLambdaS3Management",
+              Effect: "Allow",
+              Principal: {
+                AWS: APIGatewayHandlerLambdaExecutionRole.roleArn,
+              },
+              Action: ["s3:PutObject", "s3:DeleteObject"],
+              Resource: templeBucketName.arnForObjects("*"),
             },
-            Action: ["s3:PutObject", "s3:DeleteObject"],
-            Resource: templeBucketName.arnForObjects("*"),
-          },
-          {
-            Sid: "DenyNonLambdaS3Management",
-            Effect: "Deny",
-            Principal: "*",
-            Action: ["s3:PutObject", "s3:DeleteObject"],
-            Resource: templeBucketName.arnForObjects("*"),
-            Condition: {
-              StringNotEquals: {
-                "aws:PrincipalArn": APIGatewayHandlerLambdaExecutionRole.roleArn,
+            {
+              Sid: "DenyNonLambdaS3Management",
+              Effect: "Deny",
+              Principal: "*",
+              Action: ["s3:PutObject", "s3:DeleteObject"],
+              Resource: templeBucketName.arnForObjects("*"),
+              Condition: {
+                StringNotEquals: {
+                  "aws:PrincipalArn": APIGatewayHandlerLambdaExecutionRole.roleArn,
+                },
               },
             },
-          },
-          {
-            Sid: "AllowPublicReadFromWebsite",
-            Effect: "Allow",
-            Principal: "*",
-            Action: "s3:GetObject",
-            Resource: templeBucketName.arnForObjects("*"),
-            Condition: {
-              StringLike: {
-                "aws:Referer": corsOrigins.map((o) => `${o}/*`),
+            {
+              Sid: "AllowPublicReadFromWebsite",
+              Effect: "Allow",
+              Principal: "*",
+              Action: "s3:GetObject",
+              Resource: templeBucketName.arnForObjects("*"),
+              Condition: {
+                StringLike: {
+                  "aws:Referer": corsOrigins.map((o) => `${o}/*`),
+                },
               },
             },
-          },
-        ],
-      },
-    });
+          ],
+        },
+      });
+    }
 
     const ApiGwToLambdaRole = new iam.Role(this, `${project}ApiGwToLambdaRole`, {
       assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
@@ -679,11 +707,14 @@ export class TempleAppInfraCdkStack extends Stack {
       target: `integrations/${httpApiIntegInvokeLambda.ref}`,
     });
 
-    const HttpApiRoute19 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute19`, {
-      apiId: api.ref,
-      routeKey: "GET /{orgCode}/audit-logs",
-      target: `integrations/${httpApiIntegInvokeLambda.ref}`,
-    });
+    // Audit-logs read route only when the audit table exists.
+    if (auditLogsTable) {
+      new apigwv2.CfnRoute(this, `${project}HttpApiRoute19`, {
+        apiId: api.ref,
+        routeKey: "GET /{orgCode}/audit-logs",
+        target: `integrations/${httpApiIntegInvokeLambda.ref}`,
+      });
+    }
 
     const HttpApiRoute20 = new apigwv2.CfnRoute(this, `${project}HttpApiRoute20`, {
       apiId: api.ref,
@@ -808,12 +839,14 @@ export class TempleAppInfraCdkStack extends Stack {
       sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/create-ai-description-using-gemini`,
     });
 
-    const HttpApiLambdaPermission17 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission17`, {
-      action: "lambda:InvokeFunction",
-      functionName: ApiGatewayHandlerFunction.functionName,
-      principal: "apigateway.amazonaws.com",
-      sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/audit-logs`,
-    });
+    if (auditLogsTable) {
+      new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission17`, {
+        action: "lambda:InvokeFunction",
+        functionName: ApiGatewayHandlerFunction.functionName,
+        principal: "apigateway.amazonaws.com",
+        sourceArn: `arn:aws:execute-api:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:${api.ref}/*/*/{orgCode}/audit-logs`,
+      });
+    }
 
     const HttpApiLambdaPermission18 = new lambda.CfnPermission(this, `${project}HttpApiLambdaPermission18`, {
       action: "lambda:InvokeFunction",
