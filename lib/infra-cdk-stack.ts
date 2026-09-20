@@ -454,8 +454,20 @@ export class PanchangamAppInfraCdkStack extends Stack {
       environment: {
         // Optional: only set when a "TempleAdmin-" table is listed in
         // env.config.json's tableNames. When it isn't, the admin table is not
-        // created and ADMIN_TABLE is left empty (admin routes are unused here).
+        // created and ADMIN_TABLE is left empty.
+        //
+        // "admin routes are unused here" is what this comment used to say, and
+        // it was wrong in a way that took the whole API down: the handler
+        // resolves EVERY request's table by querying this one for an
+        // `organisation` row, not just the /admin routes. With it empty, every
+        // call failed at DynamoDB with "Value at 'TableName' failed to satisfy
+        // constraint". ORG_TABLES below is what makes an empty value safe.
         ADMIN_TABLE: tables["TempleAdmin-"]?.tableName ?? "",
+        // The orgs this deployment serves, as "<orgCode>=<tableName>" pairs,
+        // derived from tableNames so a new org is one line in env.config.json
+        // and a deploy — no row written into a table by hand. A prefix of
+        // "panchangam-" serves orgCode "panchangam" from panchangam-EventTable.
+        ORG_TABLES: tableNames.map((t) => `${t.replace(/-+$/, "")}=${t}EventTable`).join(","),
         // Manual regional failover, from env.config.json's activeDbRegion.
         // Empty (the default) means the handler talks to DynamoDB in its own
         // region. See scripts/ddb-failover.sh for the break-glass path.

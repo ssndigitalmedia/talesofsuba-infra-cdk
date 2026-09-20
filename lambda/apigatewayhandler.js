@@ -207,6 +207,36 @@ async function sendPushNotification(device, alertmessage, tableName) {
   }
 }
 
+/** Orgs this deployment serves directly, without the admin table.
+ *
+ * ORG_TABLES is "<orgCode>=<tableName>", comma separated, built by the CDK
+ * stack from env.config.json's tableNames — so adding an org is adding a
+ * table prefix there, and nothing has to be written into a database by hand.
+ *
+ * Why it exists: every request resolves its table by querying the TempleAdmin
+ * table for an `organisation` row. A deployment that has no TempleAdmin table
+ * — which is every project that is not Temple Hub — gets ADMIN_TABLE="" and
+ * the query then fails with
+ *   Value at 'TableName' failed to satisfy constraint: Member must have
+ *   length greater than or equal to 1
+ * on EVERY route, which reads like a DynamoDB fault rather than a missing
+ * org. The stack's comment beside ADMIN_TABLE said the admin routes were
+ * unused so an empty value was safe; the org lookup is not an admin route,
+ * and it runs on all of them.
+ */
+function orgTableFromEnv(orgCode) {
+  const pairs = (process.env.ORG_TABLES || "").split(",");
+  for (const pair of pairs) {
+    const at = pair.indexOf("=");
+    if (at < 1) continue;
+    if (pair.slice(0, at).trim() === orgCode) {
+      const table = pair.slice(at + 1).trim();
+      if (table) return table;
+    }
+  }
+  return null;
+}
+
 async function resolveTableFromAdmin(event) {
   const adminTable = process.env.ADMIN_TABLE;
   let orgCode = event.pathParameters?.orgCode;
@@ -218,6 +248,18 @@ async function resolveTableFromAdmin(event) {
 
   if (!orgCode) {
     throw new Error("orgCode not found in request");
+  }
+
+  // Configured orgs answer without a lookup at all.
+  const configured = orgTableFromEnv(orgCode);
+  if (configured) return configured;
+
+  // Nothing configured and nowhere to look it up: say so in those words,
+  // rather than letting DynamoDB report an empty TableName.
+  if (!adminTable) {
+    throw new Error(
+      `No table configured for orgCode=${orgCode}. Add its prefix to tableNames in env.config.json (which sets ORG_TABLES), or deploy a TempleAdmin- table for the organisation lookup.`,
+    );
   }
 
   // Query admin table to find org table
