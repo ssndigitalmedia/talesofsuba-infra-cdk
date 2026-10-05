@@ -369,6 +369,25 @@ async function processItemImages(item, orgCode) {
   return item;
 }
 
+// Event gallery images (Manage Event Pages → "Additional Images").
+// The admin form flattens up to five images into these keys. processItemImages only
+// handles the main image fields, so these stayed as base64 inside the DynamoDB record.
+// Kept as a separate function so existing image handling is unchanged.
+const ADDITIONAL_IMAGE_FIELDS = ["additionalImage", "additionalImage2", "additionalImage3", "additionalImage4", "additionalImage5"];
+
+async function processAdditionalImages(item, orgCode) {
+  for (const field of ADDITIONAL_IMAGE_FIELDS) {
+    const value = item[field];
+    // Only an embedded image is uploaded. An https URL (already in S3) or "" (empty slot) is left alone.
+    if (typeof value === "string" && value.startsWith("data:image/")) {
+      console.log(`Uploading ${field} to S3...`);
+      item[field] = await uploadBase64ToS3(value, field, item.id, orgCode);
+      console.log(`${field} uploaded:`, item[field]);
+    }
+  }
+  return item;
+}
+
 // ---------------- OCR / Check extraction helpers ----------------
 
 // Decode a base64 / data-URI image string into a Buffer + contentType.
@@ -496,6 +515,7 @@ exports.handler = async function (event, context) {
 
       // Process images before saving
       await processItemImages(requestJSON, sqsOrgCode);
+      await processAdditionalImages(requestJSON, sqsOrgCode);
 
       await dynamo.send(
         new PutCommand({
@@ -1037,6 +1057,7 @@ exports.handler = async function (event, context) {
 
           try {
             await processItemImages(saveItemPayload, event.pathParameters?.orgCode);
+            await processAdditionalImages(saveItemPayload, event.pathParameters?.orgCode);
           } catch (uploadErr) {
             console.error("Failed to process images:", uploadErr);
             statusCode = 500;
